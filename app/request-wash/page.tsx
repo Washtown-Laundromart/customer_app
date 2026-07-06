@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Minus, Plus, Send, Truck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api";
+import { useToast } from "@/components/toast-provider";
+import { apiFetch, toErrorMessage, type Branch, type Order, type RequestedItem } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
-const demoBranches = [
+const demoBranches: Branch[] = [
   { id: "demo-surulere", name: "FreshFold Surulere", address: "12 Adeniran Ogunsanya St, Surulere", closesAt: "20:00" },
   { id: "demo-yaba", name: "FreshFold Yaba", address: "48 Herbert Macaulay Way, Yaba", closesAt: "20:00" },
   { id: "demo-lekki", name: "FreshFold Lekki", address: "Admiralty Way, Lekki Phase 1", closesAt: "21:00" }
@@ -16,13 +17,11 @@ const demoBranches = [
 const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel"];
 const providers = ["UBER", "BOLT", "KWIK"] as const;
 
-type RequestedItem = { itemType: string; quantity: number };
-
 export default function RequestWashPage() {
   const { token, setToken, profile, setProfile, branch, setBranch, setOrder } = useCustomerStore();
-  const [branches, setBranches] = useState<any[]>([]);
+  const { showToast } = useToast();
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notice, setNotice] = useState<string>();
   const [pickupAddress, setPickupAddress] = useState(profile.defaultAddress);
   const [provider, setProvider] = useState<(typeof providers)[number]>("UBER");
   const [note, setNote] = useState("Please inspect for stains before billing.");
@@ -38,10 +37,11 @@ export default function RequestWashPage() {
       setProfile(parsed);
       setPickupAddress(parsed.defaultAddress);
     }
-    apiFetch<any[]>("/api/branches").then(setBranches).catch(() => setBranches([]));
+    apiFetch<Branch[]>("/api/branches").then(setBranches).catch(() => setBranches([]));
   }, [setProfile, setToken]);
 
   const branchOptions = branches.length ? branches : demoBranches;
+  const hasLiveBranches = branches.length > 0;
   const selectedBranch = useMemo(() => branch ?? branchOptions[0], [branch, branchOptions]);
   const totalClothes = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -55,37 +55,44 @@ export default function RequestWashPage() {
 
   async function submitRequest() {
     setIsSubmitting(true);
-    setNotice(undefined);
     try {
-      if (token && token !== "demo-token" && selectedBranch) {
-        const created = await apiFetch<any>("/api/orders", {
-          method: "POST",
-          body: JSON.stringify({
-            branchId: selectedBranch.id,
-            pickupAddress,
-            customerNote: `${note}\nPreferred provider: ${provider}`,
-            requestedItems: items,
-            fulfillmentMethod: "HOME_DELIVERY"
-          })
-        }, token);
-        setOrder(created);
-      } else {
-        throw new Error("Demo mode");
+      if (!token) throw new Error("Please log in again.");
+      if (!hasLiveBranches) {
+        throw new Error("We could not find any FreshFold branches yet. Please try again in a few minutes.");
       }
-    } catch {
-      setOrder({
-        code: "FF-20871",
-        branch: selectedBranch,
-        pickupAddress,
-        requestedItems: items,
-        preferredProvider: provider,
-        status: "PICKUP_REQUESTED"
+      const created = await apiFetch<Order>("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({
+          branchId: selectedBranch.id,
+          pickupAddress,
+          customerNote: `${note}\nPreferred provider: ${provider}`,
+          requestedItems: items,
+          fulfillmentMethod: "HOME_DELIVERY"
+        })
+      }, token);
+      setOrder(created);
+      showToast({
+        type: "success",
+        title: "Wash request sent",
+        message: `Your order ${created.code} has been sent to the branch for pickup review.`
       });
-      setNotice("Request saved in demo mode. Connect the backend database to create live orders.");
+      window.location.href = "/orders";
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "Could not send request",
+        message: toErrorMessage(error)
+      });
+      if (!hasLiveBranches) setOrder({
+        id: "demo-order",
+        code: "FF-20871",
+        status: "PICKUP_REQUESTED",
+        pickupAddress,
+        requestedItems: items
+      });
     } finally {
       setIsSubmitting(false);
     }
-    window.location.href = "/orders";
   }
 
   return (
@@ -99,7 +106,6 @@ export default function RequestWashPage() {
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-5">
-          {notice && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{notice}</div>}
           <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
             <h1 className="text-2xl font-bold sm:text-3xl">Pickup and courier details</h1>
             <p className="mt-2 text-slate-500">These are the details the backend will use when creating an Uber, Bolt or Kwik pickup job.</p>

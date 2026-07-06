@@ -4,26 +4,39 @@ import { useEffect } from "react";
 import { ArrowLeft, Bell, CreditCard, Mail, PackageCheck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/toast-provider";
+import { apiFetch, type Order, type RequestedItem } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function OrdersPage() {
-  const { token, setToken, order, setOrder } = useCustomerStore();
+  const { token, setToken, order, orders, setOrders } = useCustomerStore();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
-    if (savedToken) setToken(savedToken);
-    else window.location.href = "/auth";
-  }, [setToken]);
+    if (!savedToken) {
+      window.location.href = "/auth";
+      return;
+    }
+    setToken(savedToken);
+    apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders).catch(() => {
+      setOrders([]);
+      showToast({ type: "error", title: "Could not load orders", message: "We could not get your orders right now. Please refresh the page." });
+    });
+  }, [setOrders, setToken, showToast]);
 
   if (!token) return null;
 
-  const activeOrder = order ?? {
+  const activeOrder = order ?? orders[0] ?? {
+    id: "demo-order",
     code: "FF-20871",
     requestedItems: [{ itemType: "Shirt", quantity: 5 }],
     status: "PICKUP_REQUESTED"
   };
 
-  const billReady = Boolean(activeOrder.bill?.paystackUrl);
+  const paystackUrl = activeOrder.bill?.paystackUrl ?? "";
+  const billReady = Boolean(paystackUrl);
+  const requestedItems = Array.isArray(activeOrder.requestedItems) ? activeOrder.requestedItems as RequestedItem[] : [];
 
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
@@ -54,7 +67,7 @@ export default function OrdersPage() {
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
             <h2 className="text-xl font-bold">Customer item estimate</h2>
             <div className="mt-4 space-y-3">
-              {(activeOrder.requestedItems ?? []).map((item: any, index: number) => (
+              {requestedItems.map((item, index) => (
                 <div key={`${item.itemType}-${index}`} className="flex items-center justify-between border-b border-slate-200 pb-3 text-sm">
                   <span>{item.itemType}</span>
                   <strong>{item.quantity}</strong>
@@ -67,7 +80,7 @@ export default function OrdersPage() {
             {billReady ? (
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div><h2 className="text-xl font-bold">Your bill is ready</h2><p className="text-sm text-slate-500">Includes wash bill and return delivery fee.</p></div>
-                <Button className="w-full sm:w-auto" onClick={() => (window.location.href = activeOrder.bill.paystackUrl)}><CreditCard className="h-4 w-4" /> Pay with Paystack</Button>
+                <Button className="w-full sm:w-auto" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay with Paystack</Button>
               </div>
             ) : (
               <div className="text-center">
@@ -88,7 +101,6 @@ export default function OrdersPage() {
             <p className="flex items-center gap-2 font-bold"><Mail className="h-5 w-5 text-[#13a7a5]" /> Email notification</p>
             <p className="mt-3 text-sm text-slate-500">The same Paystack bill link is sent to the customer email saved on profile.</p>
           </Card>
-          <Button className="w-full" onClick={() => setOrder({ ...activeOrder, bill: { paystackUrl: "https://paystack.com/pay/freshfold-demo" } })}>Demo: mark bill ready</Button>
         </aside>
       </section>
     </main>

@@ -4,44 +4,55 @@ import { useState } from "react";
 import { ArrowRight, Check, ShieldCheck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api";
+import { useToast } from "@/components/toast-provider";
+import { apiFetch, toErrorMessage, type AuthResponse } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function CustomerAuthPage() {
   const { setToken, setProfile } = useCustomerStore();
+  const { showToast } = useToast();
   const [mode, setMode] = useState<"register" | "login">("register");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notice, setNotice] = useState<string>();
   const [form, setForm] = useState({
-    fullName: "David Ukap",
-    email: "david@email.com",
-    phone: "08035550192",
-    password: "password123"
+    fullName: "",
+    email: "",
+    phone: "",
+    password: ""
   });
 
   async function submit() {
     setIsSubmitting(true);
-    setNotice(undefined);
     try {
       const path = mode === "register" ? "/api/auth/register" : "/api/auth/login";
       const body = mode === "register" ? form : { email: form.email, password: form.password };
-      const result = await apiFetch<{ token: string }>(path, { method: "POST", body: JSON.stringify(body) });
+      const result = await apiFetch<AuthResponse>(path, { method: "POST", body: JSON.stringify(body) });
+      const savedProfile = window.localStorage.getItem("freshfold_customer_profile");
+      const savedDefaultAddress = savedProfile ? JSON.parse(savedProfile).defaultAddress : "";
       window.localStorage.setItem("freshfold_customer_token", result.token);
-      const profile = { fullName: form.fullName, email: form.email, phone: form.phone, defaultAddress: "7B Bode Thomas St, Surulere, Lagos" };
+      const profile = {
+        fullName: result.user.fullName,
+        email: result.user.email,
+        phone: result.user.phone ?? form.phone,
+        defaultAddress: result.user.defaultAddress ?? savedDefaultAddress ?? ""
+      };
       window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profile));
       setProfile(profile);
       setToken(result.token);
-    } catch {
-      window.localStorage.setItem("freshfold_customer_token", "demo-token");
-      const profile = { fullName: form.fullName, email: form.email, phone: form.phone, defaultAddress: "7B Bode Thomas St, Surulere, Lagos" };
-      window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profile));
-      setProfile(profile);
-      setToken("demo-token");
-      setNotice("Backend auth is not connected to a database yet, so you are entering the app in demo mode.");
+      showToast({
+        type: "success",
+        title: mode === "register" ? "Account created" : "You are signed in",
+        message: mode === "register" ? "Welcome to FreshFold. You can now request a wash." : "Welcome back. Your dashboard is opening now."
+      });
+      window.location.href = "/";
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: mode === "register" ? "Could not create account" : "Could not sign you in",
+        message: toErrorMessage(error)
+      });
     } finally {
       setIsSubmitting(false);
     }
-    window.location.href = "/";
   }
 
   return (
@@ -82,8 +93,6 @@ export default function CustomerAuthPage() {
           </div>
           <h2 className="text-2xl font-bold">{mode === "register" ? "Create your account" : "Welcome back"}</h2>
           <p className="mt-1 text-sm text-slate-500">Auth stays here. The main app starts after this screen.</p>
-
-          {notice && <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{notice}</div>}
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {mode === "register" && <Field label="Full name" value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} />}

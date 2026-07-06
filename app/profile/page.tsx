@@ -4,28 +4,71 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Save, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/toast-provider";
+import { apiFetch, toErrorMessage, type ProfileResponse } from "@/lib/api";
 import { CustomerProfile, useCustomerStore } from "@/lib/store";
 
 export default function ProfilePage() {
   const { profile, setProfile, setToken } = useCustomerStore();
+  const { showToast } = useToast();
   const [form, setForm] = useState<CustomerProfile>(profile);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
     const savedProfile = window.localStorage.getItem("freshfold_customer_profile");
-    if (savedToken) setToken(savedToken);
-    else window.location.href = "/auth";
+    if (!savedToken) {
+      window.location.href = "/auth";
+      return;
+    }
+    setToken(savedToken);
     if (savedProfile) {
       const parsed = JSON.parse(savedProfile) as CustomerProfile;
       setProfile(parsed);
       setForm(parsed);
     }
-  }, [setProfile, setToken]);
+    apiFetch<ProfileResponse>("/api/auth/me", {}, savedToken).then((result) => {
+      const profileFromApi = {
+        fullName: result.user.fullName,
+        email: result.user.email,
+        phone: result.user.phone ?? "",
+        defaultAddress: result.user.defaultAddress ?? ""
+      };
+      window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profileFromApi));
+      setProfile(profileFromApi);
+      setForm(profileFromApi);
+    }).catch(() => {
+      showToast({ type: "error", title: "Could not load profile", message: "We could not get your saved profile details. Please refresh the page." });
+    });
+  }, [setProfile, setToken, showToast]);
 
-  function saveProfile() {
-    window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(form));
-    setProfile(form);
-    window.location.href = "/";
+  async function saveProfile() {
+    const savedToken = window.localStorage.getItem("freshfold_customer_token");
+    if (!savedToken) {
+      window.location.href = "/auth";
+      return;
+    }
+    try {
+      const result = await apiFetch<ProfileResponse>("/api/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName: form.fullName,
+          phone: form.phone,
+          defaultAddress: form.defaultAddress
+        })
+      }, savedToken);
+      const profileFromApi = {
+        fullName: result.user.fullName,
+        email: result.user.email,
+        phone: result.user.phone ?? "",
+        defaultAddress: result.user.defaultAddress ?? ""
+      };
+      window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profileFromApi));
+      setProfile(profileFromApi);
+      showToast({ type: "success", title: "Profile saved", message: "We will use these details for your next pickup request." });
+      window.location.href = "/";
+    } catch (error) {
+      showToast({ type: "error", title: "Could not save profile", message: toErrorMessage(error) });
+    }
   }
 
   return (

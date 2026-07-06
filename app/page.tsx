@@ -4,16 +4,28 @@ import { useEffect } from "react";
 import { ArrowRight, Bell, LogOut, PackageCheck, ReceiptText, Truck, User, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/toast-provider";
+import { apiFetch, type Order } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function CustomerDashboard() {
-  const { token, setToken, profile, order } = useCustomerStore();
+  const { token, setToken, profile, setProfile, order, setOrders } = useCustomerStore();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
-    if (savedToken) setToken(savedToken);
-    else window.location.href = "/auth";
-  }, [setToken]);
+    const savedProfile = window.localStorage.getItem("freshfold_customer_profile");
+    if (!savedToken) {
+      window.location.href = "/auth";
+      return;
+    }
+    setToken(savedToken);
+    if (savedProfile) setProfile(JSON.parse(savedProfile));
+    apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders).catch(() => {
+      setOrders([]);
+      showToast({ type: "error", title: "Could not load orders", message: "Your account is open, but we could not load your latest orders. Please refresh the page." });
+    });
+  }, [setOrders, setProfile, setToken, showToast]);
 
   function signOut() {
     window.localStorage.removeItem("freshfold_customer_token");
@@ -60,10 +72,10 @@ export default function CustomerDashboard() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-bold text-[#13a7a5]">{order.code ?? "FF-20871"}</p>
-                    <h3 className="mt-1 text-2xl font-bold">Pickup requested</h3>
+                    <h3 className="mt-1 text-2xl font-bold">{formatStatus(order.status)}</h3>
                     <p className="mt-1 text-sm text-slate-500">{order.pickupAddress}</p>
                   </div>
-                  <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">Inspection pending</span>
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">{order.bill?.paystackUrl ? "Bill ready" : "Inspection pending"}</span>
                 </div>
               ) : (
                 <div className="text-center">
@@ -134,4 +146,8 @@ function StatusCard({ icon, label, value }: { icon: React.ReactNode; label: stri
 
 function Info({ label, value }: { label: string; value: string }) {
   return <div className="border-b border-slate-100 pb-3"><p className="text-xs font-bold uppercase text-slate-400">{label}</p><p className="mt-1 font-semibold">{value}</p></div>;
+}
+
+function formatStatus(status?: string) {
+  return status ? status.replaceAll("_", " ").toLowerCase().replace(/^\w|\s\w/g, (match) => match.toUpperCase()) : "Pickup requested";
 }
