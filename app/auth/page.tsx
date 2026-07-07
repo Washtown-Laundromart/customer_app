@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Check, ShieldCheck, WashingMachine } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, ShieldCheck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
@@ -111,10 +111,19 @@ export default function CustomerAuthPage() {
 }
 
 function Field({ label, value, type = "text", onChange }: { label: string; value: string; type?: string; onChange: (value: string) => void }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
   return (
     <label className="block text-sm font-semibold text-slate-700">
       {label}
-      <input className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#13a7a5]" value={value} type={type} onChange={(event) => onChange(event.target.value)} />
+      <span className="relative mt-2 block">
+        <input className="h-12 w-full rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm outline-none focus:border-[#13a7a5]" value={value} type={isPassword && showPassword ? "text" : type} onChange={(event) => onChange(event.target.value)} />
+        {isPassword && (
+          <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100" onClick={() => setShowPassword((current) => !current)}>
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
+      </span>
     </label>
   );
 }

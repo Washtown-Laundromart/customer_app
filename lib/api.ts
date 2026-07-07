@@ -1,5 +1,5 @@
 // This customer app should never call Uber, Bolt, Kwik, or Paystack secret APIs directly.
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000").replace(/\/$/, "");
+export const API_BASE_URL = "/api/freshfold";
 
 export type ApiUser = {
   id: string;
@@ -59,16 +59,23 @@ export type Order = {
 };
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers
+      }
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json() as Promise<T>;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error("FreshFold could not reach its server right now. Please try again later.");
     }
-  });
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
+    throw error;
+  }
 }
 
 export function toErrorMessage(error: unknown) {
@@ -87,6 +94,7 @@ export function friendlyErrorMessage(message?: string) {
   const normalized = message?.toLowerCase() ?? "";
   if (normalized.includes("invalid credentials")) return "The email or password is not correct. Please check it and try again.";
   if (normalized.includes("unique") || normalized.includes("already")) return "An account with this email already exists. Please log in instead.";
+  if (normalized.includes("could not connect to freshfold at")) return message ?? "We could not connect to FreshFold right now.";
   if (normalized.includes("failed to fetch") || normalized.includes("network") || normalized.includes("can't reach")) {
     return "We could not connect to FreshFold right now. Please check your internet connection and try again.";
   }

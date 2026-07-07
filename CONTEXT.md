@@ -11,11 +11,13 @@ Stack:
 - Lucide React icons
 
 Backend connection:
-- Set `NEXT_PUBLIC_API_BASE_URL` in `.env.local`.
-- During local development it defaults to `http://localhost:4000`.
+- Browser code calls the same-origin Next.js proxy at `/api/freshfold`; it should not call Railway directly.
+- Set `BACKEND_API_BASE_URL` in Vercel/local env for the proxy route. It can fall back to `NEXT_PUBLIC_API_BASE_URL` for compatibility.
+- During local development the proxy defaults to `http://localhost:4000` if no backend URL env is set.
 - Customer app calls only the FreshFold backend. Courier providers and Paystack secret operations stay on the backend.
 - Local `.env` currently points to the Railway backend URL for live integration testing.
 - `npm run dev` and `npm run start` do not pin port 3000; Next can select another open port when 3000 is busy.
+- On Vercel, using the `/api/freshfold` proxy avoids browser CORS because Vercel calls Railway server-to-server.
 
 Implemented flow:
 - Separate `/auth` register/login entry screen
@@ -30,6 +32,7 @@ Implemented flow:
 - `/notifications/[id]` shows notification details, bill breakdown when attached, and Paystack payment CTA when available.
 - App-wide toast notifications live in `components/toast-provider.tsx` and should use plain-language copy for non-technical customers.
 - API errors are mapped through `toErrorMessage`/`friendlyErrorMessage` in `lib/api.ts`; keep backend/deployment failures understandable for customers.
+- Network failures from the frontend should remain customer-readable; backend proxy settings should be checked in Vercel/Railway logs.
 
 Next tasks:
 - Replace simulated progress with live `/api/orders` polling or sockets.
