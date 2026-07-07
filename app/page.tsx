@@ -5,7 +5,7 @@ import { ArrowRight, Bell, LogOut, PackageCheck, ReceiptText, Truck, User, Washi
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
-import { apiFetch, type Order } from "@/lib/api";
+import { apiFetch, type Order, type ProfileResponse } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function CustomerDashboard() {
@@ -21,6 +21,18 @@ export default function CustomerDashboard() {
     }
     setToken(savedToken);
     if (savedProfile) setProfile(JSON.parse(savedProfile));
+    apiFetch<ProfileResponse>("/api/auth/me", {}, savedToken).then((result) => {
+      const profileFromApi = {
+        fullName: result.user.fullName,
+        email: result.user.email,
+        phone: result.user.phone ?? "",
+        defaultAddress: result.user.defaultAddress ?? ""
+      };
+      window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profileFromApi));
+      setProfile(profileFromApi);
+    }).catch(() => {
+      window.localStorage.removeItem("freshfold_customer_profile");
+    });
     apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders).catch(() => {
       setOrders([]);
       showToast({ type: "error", title: "Could not load orders", message: "Your account is open, but we could not load your latest orders. Please refresh the page." });
@@ -29,6 +41,7 @@ export default function CustomerDashboard() {
 
   function signOut() {
     window.localStorage.removeItem("freshfold_customer_token");
+    window.localStorage.removeItem("freshfold_customer_profile");
     setToken("");
     window.location.href = "/auth";
   }

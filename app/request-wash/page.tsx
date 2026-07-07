@@ -5,14 +5,8 @@ import { ArrowLeft, Minus, Plus, Send, Truck, WashingMachine } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
-import { apiFetch, toErrorMessage, type Branch, type Order, type RequestedItem } from "@/lib/api";
+import { apiFetch, toErrorMessage, type Branch, type Order, type ProfileResponse, type RequestedItem } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
-
-const demoBranches: Branch[] = [
-  { id: "demo-surulere", name: "FreshFold Surulere", address: "12 Adeniran Ogunsanya St, Surulere", closesAt: "20:00" },
-  { id: "demo-yaba", name: "FreshFold Yaba", address: "48 Herbert Macaulay Way, Yaba", closesAt: "20:00" },
-  { id: "demo-lekki", name: "FreshFold Lekki", address: "Admiralty Way, Lekki Phase 1", closesAt: "21:00" }
-];
 
 const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel"];
 const providers = ["UBER", "BOLT", "KWIK"] as const;
@@ -37,12 +31,27 @@ export default function RequestWashPage() {
       setProfile(parsed);
       setPickupAddress(parsed.defaultAddress);
     }
+    if (savedToken) {
+      apiFetch<ProfileResponse>("/api/auth/me", {}, savedToken).then((result) => {
+        const profileFromApi = {
+          fullName: result.user.fullName,
+          email: result.user.email,
+          phone: result.user.phone ?? "",
+          defaultAddress: result.user.defaultAddress ?? ""
+        };
+        window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profileFromApi));
+        setProfile(profileFromApi);
+        setPickupAddress(profileFromApi.defaultAddress);
+      }).catch(() => {
+        window.localStorage.removeItem("freshfold_customer_profile");
+        setPickupAddress("");
+      });
+    }
     apiFetch<Branch[]>("/api/branches").then(setBranches).catch(() => setBranches([]));
   }, [setProfile, setToken]);
 
-  const branchOptions = branches.length ? branches : demoBranches;
   const hasLiveBranches = branches.length > 0;
-  const selectedBranch = useMemo(() => branch ?? branchOptions[0], [branch, branchOptions]);
+  const selectedBranch = useMemo(() => branch ?? branches[0], [branch, branches]);
   const totalClothes = items.reduce((sum, item) => sum + item.quantity, 0);
 
   function updateItem(index: number, patch: Partial<RequestedItem>) {
@@ -59,6 +68,9 @@ export default function RequestWashPage() {
       if (!token) throw new Error("Please log in again.");
       if (!hasLiveBranches) {
         throw new Error("We could not find any FreshFold branches yet. Please try again in a few minutes.");
+      }
+      if (!selectedBranch) {
+        throw new Error("Please select a branch before sending your request.");
       }
       const created = await apiFetch<Order>("/api/orders", {
         method: "POST",
@@ -82,13 +94,6 @@ export default function RequestWashPage() {
         type: "error",
         title: "Could not send request",
         message: toErrorMessage(error)
-      });
-      if (!hasLiveBranches) setOrder({
-        id: "demo-order",
-        code: "FF-20871",
-        status: "PICKUP_REQUESTED",
-        pickupAddress,
-        requestedItems: items
       });
     } finally {
       setIsSubmitting(false);
@@ -116,7 +121,7 @@ export default function RequestWashPage() {
               <Field label="Pickup address" value={pickupAddress} onChange={setPickupAddress} />
             </div>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <label className="text-sm font-semibold text-slate-700">Nearest branch<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={selectedBranch?.id} onChange={(event) => setBranch(branchOptions.find((item) => item.id === event.target.value) ?? branchOptions[0])}>{branchOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+              <label className="text-sm font-semibold text-slate-700">Nearest branch<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={selectedBranch?.id ?? ""} onChange={(event) => setBranch(branches.find((item) => item.id === event.target.value) ?? branches[0])} disabled={!branches.length}>{branches.length ? branches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>) : <option value="">No live branches found</option>}</select></label>
               <label className="text-sm font-semibold text-slate-700">Preferred courier provider<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={provider} onChange={(event) => setProvider(event.target.value as typeof provider)}>{providers.map((item) => <option key={item}>{item}</option>)}</select></label>
             </div>
           </Card>

@@ -25,7 +25,8 @@ Implemented flow:
 - `/auth` calls live backend register/login endpoints, stores returned user details, and no longer pre-fills mock form values.
 - `/` customer dashboard loads live customer orders from `/api/orders`, keeps profile details from storage/API, and shows readable toast errors if order loading fails.
 - `/profile` loads and saves profile details through `/api/auth/me`; `defaultAddress` is persisted on the backend instead of only in browser storage.
-- `/request-wash` loads live branches from `/api/branches`, submits live orders to `/api/orders`, and uses the saved/default pickup address when available.
+- `/request-wash` loads live branches from `/api/branches`, refreshes the logged-in user's profile from `/api/auth/me`, submits live orders to `/api/orders`, and uses only that user's backend `defaultAddress` as the pickup address.
+- Auth must not copy `defaultAddress` from a previous `localStorage` profile when a different user signs in; each customer's pickup address belongs only to their backend user record.
 - `/orders` loads live customer orders from `/api/orders`; Paystack link appears after branch inspection and bill creation.
 - Header bell links to `/notifications`.
 - `/notifications` shows in-app notifications such as bill-ready, order update, and branch broadcast messages.

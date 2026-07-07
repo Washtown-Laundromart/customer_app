@@ -26,14 +26,12 @@ export default function CustomerAuthPage() {
       const path = mode === "register" ? "/api/auth/register" : "/api/auth/login";
       const body = mode === "register" ? form : { email: form.email, password: form.password };
       const result = await apiFetch<AuthResponse>(path, { method: "POST", body: JSON.stringify(body) });
-      const savedProfile = window.localStorage.getItem("freshfold_customer_profile");
-      const savedDefaultAddress = savedProfile ? JSON.parse(savedProfile).defaultAddress : "";
       window.localStorage.setItem("freshfold_customer_token", result.token);
       const profile = {
         fullName: result.user.fullName,
         email: result.user.email,
         phone: result.user.phone ?? form.phone,
-        defaultAddress: result.user.defaultAddress ?? savedDefaultAddress ?? ""
+        defaultAddress: result.user.defaultAddress ?? ""
       };
       window.localStorage.setItem("freshfold_customer_profile", JSON.stringify(profile));
       setProfile(profile);
