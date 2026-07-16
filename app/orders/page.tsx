@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ArrowLeft, Bell, CreditCard, Mail, PackageCheck, WashingMachine } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, Download, Mail, PackageCheck, ReceiptText, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
@@ -19,9 +19,25 @@ export default function OrdersPage() {
       return;
     }
     setToken(savedToken);
-    apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders).catch(() => {
-      setOrders([]);
-      showToast({ type: "error", title: "Could not load orders", message: "We could not get your orders right now. Please refresh the page." });
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("reference") ?? params.get("trxref");
+    const loadOrders = () => apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders);
+    const verifyPayment = reference
+      ? apiFetch<{ order: Order }>("/api/orders/payments/verify", {
+        method: "POST",
+        body: JSON.stringify({ reference })
+      }, savedToken).then((result) => {
+        setOrders([result.order]);
+        window.history.replaceState({}, "", "/orders");
+        showToast({ type: "success", title: "Payment confirmed", message: "Your payment has been verified and your order is now in cleaning." });
+      })
+      : loadOrders();
+
+    verifyPayment.catch(() => {
+      loadOrders().catch(() => {
+        setOrders([]);
+        showToast({ type: "error", title: "Could not load orders", message: "We could not get your orders right now. Please refresh the page." });
+      });
     });
   }, [setOrders, setToken, showToast]);
 
@@ -36,7 +52,31 @@ export default function OrdersPage() {
 
   const paystackUrl = activeOrder.bill?.paystackUrl ?? "";
   const billReady = Boolean(paystackUrl);
+  const isPaid = Boolean(activeOrder.bill?.paidAt);
   const requestedItems = Array.isArray(activeOrder.requestedItems) ? activeOrder.requestedItems as RequestedItem[] : [];
+
+  function downloadReceipt() {
+    if (!activeOrder.bill) return;
+    const receipt = [
+      "Washtownnig Payment Receipt",
+      `Order: ${activeOrder.code}`,
+      `Status: ${activeOrder.status.replaceAll("_", " ")}`,
+      `Paid at: ${activeOrder.bill.paidAt ? new Date(activeOrder.bill.paidAt).toLocaleString() : "Not paid"}`,
+      "",
+      "Items",
+      ...(activeOrder.bill.items ?? []).map((item) => `${item.quantity} x ${item.itemName} (${item.serviceType}) @ NGN ${Number(item.unitPrice).toLocaleString()} = NGN ${Number(item.total).toLocaleString()}`),
+      "",
+      `Cleaning subtotal: NGN ${Number(activeOrder.bill.cleaningSubtotal).toLocaleString()}`,
+      `Delivery fee: NGN ${Number(activeOrder.bill.deliveryFee).toLocaleString()}`,
+      `Total paid: NGN ${Number(activeOrder.bill.total).toLocaleString()}`
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([receipt], { type: "text/plain" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${activeOrder.code}-receipt.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
@@ -55,13 +95,13 @@ export default function OrdersPage() {
               <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Wash order status</h1>
               <p className="mt-2 text-slate-500">Branch staff must inspect stains and garment condition, then send a Paystack bill before washing starts.</p>
             </div>
-            <span className={`rounded-full px-3 py-1 text-sm font-bold ${billReady ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{billReady ? "Bill ready" : "Awaiting branch bill"}</span>
+            <span className={`rounded-full px-3 py-1 text-sm font-bold ${isPaid ? "bg-emerald-50 text-emerald-700" : billReady ? "bg-cyan-50 text-cyan-700" : "bg-amber-50 text-amber-700"}`}>{isPaid ? "Paid" : billReady ? "Bill ready" : "Awaiting branch bill"}</span>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <Stage active done label="Pickup requested" />
-            <Stage active={activeOrder.status === "AT_BRANCH" || billReady} label="Branch inspection" />
-            <Stage active={billReady} label="Payment link sent" />
+            <Stage active={activeOrder.status === "AT_BRANCH" || billReady} done={billReady} label="Branch inspection" />
+            <Stage active={billReady} done={isPaid} label={isPaid ? "Payment completed" : "Payment link sent"} />
           </div>
 
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
@@ -78,9 +118,27 @@ export default function OrdersPage() {
 
           <div className="mt-6 rounded-xl border border-dashed border-slate-300 p-5">
             {billReady ? (
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div><h2 className="text-xl font-bold">Your bill is ready</h2><p className="text-sm text-slate-500">Includes wash bill and return delivery fee.</p></div>
-                <Button className="w-full sm:w-auto" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay with Paystack</Button>
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div><h2 className="flex items-center gap-2 text-xl font-bold"><ReceiptText className="h-5 w-5 text-[#13a7a5]" /> {isPaid ? "Payment receipt" : "Your bill is ready"}</h2><p className="text-sm text-slate-500">Branch-inspected pricing and return delivery fee.</p></div>
+                  {isPaid ? (
+                    <Button className="w-full sm:w-auto" onClick={downloadReceipt}><Download className="h-4 w-4" /> Download receipt</Button>
+                  ) : (
+                    <Button className="w-full sm:w-auto" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay with Paystack</Button>
+                  )}
+                </div>
+                <div className="mt-5 space-y-3">
+                  {activeOrder.bill?.items?.map((item, index) => (
+                    <div key={`${item.itemName}-${index}`} className="flex items-center justify-between border-b border-slate-200 pb-3 text-sm">
+                      <div><p className="font-bold">{item.quantity} x {item.itemName}</p><p className="text-slate-500">{item.serviceType} · Unit {formatNaira(item.unitPrice)}</p></div>
+                      <strong>{formatNaira(item.total)}</strong>
+                    </div>
+                  ))}
+                  <Summary label="Cleaning subtotal" value={activeOrder.bill?.cleaningSubtotal ?? 0} />
+                  <Summary label="Return delivery" value={activeOrder.bill?.deliveryFee ?? 0} />
+                  <Summary label={isPaid ? "Total paid" : "Total to pay"} value={activeOrder.bill?.total ?? 0} strong />
+                  {isPaid && activeOrder.bill?.paidAt && <p className="text-sm text-slate-500">Paid on {new Date(activeOrder.bill.paidAt).toLocaleString()}</p>}
+                </div>
               </div>
             ) : (
               <div className="text-center">
@@ -109,4 +167,12 @@ export default function OrdersPage() {
 
 function Stage({ label, active, done }: { label: string; active?: boolean; done?: boolean }) {
   return <div className={`rounded-xl border p-4 ${active ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white"}`}><div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${done ? "bg-emerald-500 text-white" : active ? "bg-[#13a7a5] text-white" : "bg-slate-100 text-slate-400"}`}>{done ? "✓" : "•"}</div><p className="font-bold">{label}</p></div>;
+}
+
+function Summary({ label, value, strong }: { label: string; value: number; strong?: boolean }) {
+  return <div className={`flex items-center justify-between text-sm ${strong ? "pt-2 text-lg font-bold" : ""}`}><span>{label}</span><span>{formatNaira(value)}</span></div>;
+}
+
+function formatNaira(value: number) {
+  return `NGN ${Number(value).toLocaleString()}`;
 }
