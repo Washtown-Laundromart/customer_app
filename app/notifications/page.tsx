@@ -6,18 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
-import { demoNotifications } from "@/lib/demo-notifications";
 
 export default function NotificationsPage() {
   const { token, setToken } = useCustomerStore();
-  const [notifications, setNotifications] = useState<any[]>(demoNotifications);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
     if (savedToken) {
       setToken(savedToken);
       if (savedToken !== "demo-token") {
-        apiFetch<any[]>("/api/notifications", {}, savedToken).then(setNotifications).catch(() => setNotifications(demoNotifications));
+        apiFetch<any[]>("/api/notifications", {}, savedToken).then(setNotifications).catch(() => setNotifications([])).finally(() => setIsLoading(false));
+      } else {
+        setIsLoading(false);
       }
     } else {
       window.location.href = "/auth";
@@ -40,6 +42,7 @@ export default function NotificationsPage() {
           <h1 className="text-2xl font-bold sm:text-3xl">Notification inbox</h1>
           <p className="mt-2 text-sm text-slate-500">When a branch admin sends your order bill, it appears here with the full breakdown and Paystack payment action.</p>
           <div className="mt-6 space-y-3">
+            {isLoading && <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">Loading notifications...</p>}
             {notifications.map((notification) => (
               <button key={notification.id} onClick={() => (window.location.href = `/notifications/${notification.id}`)} className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-[#13a7a5] hover:bg-cyan-50">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -56,6 +59,12 @@ export default function NotificationsPage() {
                 </div>
               </button>
             ))}
+            {!isLoading && !notifications.length && (
+              <div className="rounded-xl border border-dashed border-slate-200 p-5 text-center">
+                <p className="font-bold">No notifications yet</p>
+                <p className="mt-1 text-sm text-slate-500">Your bill notification will appear here after the branch creates a bill.</p>
+              </div>
+            )}
           </div>
         </Card>
 

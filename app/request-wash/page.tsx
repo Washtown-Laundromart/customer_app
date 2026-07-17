@@ -9,7 +9,7 @@ import { apiFetch, toErrorMessage, type Branch, type Order, type ProfileResponse
 import { useCustomerStore } from "@/lib/store";
 
 const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel"];
-const providers = ["UBER", "BOLT", "KWIK"] as const;
+const providers = ["RELAY", "BOLT", "KWIK"] as const;
 
 export default function RequestWashPage() {
   const { token, setToken, profile, setProfile, branch, setBranch, setOrder } = useCustomerStore();
@@ -17,7 +17,7 @@ export default function RequestWashPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickupAddress, setPickupAddress] = useState(profile.defaultAddress);
-  const [provider, setProvider] = useState<(typeof providers)[number]>("UBER");
+  const [provider, setProvider] = useState<(typeof providers)[number]>("RELAY");
   const [note, setNote] = useState("Please inspect for stains before billing.");
   const [items, setItems] = useState<RequestedItem[]>([{ itemType: "Shirt", quantity: 5 }]);
 
@@ -113,7 +113,7 @@ export default function RequestWashPage() {
         <div className="space-y-5">
           <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
             <h1 className="text-2xl font-bold sm:text-3xl">Pickup and courier details</h1>
-            <p className="mt-2 text-slate-500">These are the details the backend will use when creating an Uber, Bolt or Kwik pickup job.</p>
+            <p className="mt-2 text-slate-500">These are the details the backend will use when creating a Relay, Bolt or Kwik pickup job.</p>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Field label="Full name" value={profile.fullName} readOnly />
               <Field label="Phone number" value={profile.phone} readOnly />

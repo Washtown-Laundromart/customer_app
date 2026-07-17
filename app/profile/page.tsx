@@ -78,7 +78,7 @@ export default function ProfilePage() {
         <Button className="mb-5 bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> Back</Button>
         <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
           <h1 className="text-2xl font-bold sm:text-3xl">Profile details</h1>
-          <p className="mt-2 text-slate-500">These details are reused when requesting Uber, Bolt or Kwik pickup through the backend.</p>
+          <p className="mt-2 text-slate-500">These details are reused when requesting Relay, Bolt or Kwik pickup through the backend.</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <Field label="Full name" value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} />
             <Field label="Phone number" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />

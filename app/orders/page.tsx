@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ArrowLeft, Bell, CreditCard, Download, Mail, PackageCheck, ReceiptText, WashingMachine } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, Mail, PackageCheck, ReceiptText, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
@@ -55,29 +55,6 @@ export default function OrdersPage() {
   const isPaid = Boolean(activeOrder.bill?.paidAt);
   const requestedItems = Array.isArray(activeOrder.requestedItems) ? activeOrder.requestedItems as RequestedItem[] : [];
 
-  function downloadReceipt() {
-    if (!activeOrder.bill) return;
-    const receipt = [
-      "Washtownnig Payment Receipt",
-      `Order: ${activeOrder.code}`,
-      `Status: ${activeOrder.status.replaceAll("_", " ")}`,
-      `Paid at: ${activeOrder.bill.paidAt ? new Date(activeOrder.bill.paidAt).toLocaleString() : "Not paid"}`,
-      "",
-      "Items",
-      ...(activeOrder.bill.items ?? []).map((item) => `${item.quantity} x ${item.itemName} (${item.serviceType}) @ NGN ${Number(item.unitPrice).toLocaleString()} = NGN ${Number(item.total).toLocaleString()}`),
-      "",
-      `Cleaning subtotal: NGN ${Number(activeOrder.bill.cleaningSubtotal).toLocaleString()}`,
-      `Delivery fee: NGN ${Number(activeOrder.bill.deliveryFee).toLocaleString()}`,
-      `Total paid: NGN ${Number(activeOrder.bill.total).toLocaleString()}`
-    ].join("\n");
-    const url = URL.createObjectURL(new Blob([receipt], { type: "text/plain" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${activeOrder.code}-receipt.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
       <header className="border-b border-slate-200 bg-white">
@@ -122,7 +99,7 @@ export default function OrdersPage() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div><h2 className="flex items-center gap-2 text-xl font-bold"><ReceiptText className="h-5 w-5 text-[#13a7a5]" /> {isPaid ? "Payment receipt" : "Your bill is ready"}</h2><p className="text-sm text-slate-500">Branch-inspected pricing and return delivery fee.</p></div>
                   {isPaid ? (
-                    <Button className="w-full sm:w-auto" onClick={downloadReceipt}><Download className="h-4 w-4" /> Download receipt</Button>
+                    <Button className="w-full sm:w-auto" onClick={() => (window.location.href = `/receipts/${activeOrder.id}`)}><ReceiptText className="h-4 w-4" /> View receipt</Button>
                   ) : (
                     <Button className="w-full sm:w-auto" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay with Paystack</Button>
                   )}

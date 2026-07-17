@@ -1,37 +1,71 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Bell, CreditCard, ReceiptText, WashingMachine } from "lucide-react";
+import { use, useEffect, useState } from "react";
+import { ArrowLeft, Bell, CreditCard, Download, ReceiptText, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
-import { demoNotifications } from "@/lib/demo-notifications";
 
 export default function NotificationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { token, setToken } = useCustomerStore();
   const [notification, setNotification] = useState<any>();
-  const fallback = useMemo(() => demoNotifications.find((item) => item.id === id) ?? demoNotifications[0], [id]);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
     if (savedToken) {
       setToken(savedToken);
       if (savedToken !== "demo-token") {
-        apiFetch<any>(`/api/notifications/${id}`, {}, savedToken).then(setNotification).catch(() => setNotification(fallback));
+        apiFetch<any>(`/api/notifications/${id}`, {}, savedToken).then(setNotification).catch(() => setNotFound(true));
       } else {
-        setNotification(fallback);
+        setNotFound(true);
       }
     } else {
       window.location.href = "/auth";
     }
-  }, [fallback, id, setToken]);
+  }, [id, setToken]);
 
-  if (!token || !notification) return null;
+  if (!token) return null;
+  if (notFound) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f7faf9] px-4 text-[#102532]">
+        <Card className="max-w-md border-0 p-6 text-center shadow-xl shadow-slate-200">
+          <h1 className="text-2xl font-bold">Notification not found</h1>
+          <p className="mt-2 text-sm text-slate-500">This notification is not available for your account.</p>
+          <Button className="mt-5" onClick={() => (window.location.href = "/notifications")}><ArrowLeft className="h-4 w-4" /> Back to notifications</Button>
+        </Card>
+      </main>
+    );
+  }
+  if (!notification) return null;
 
   const bill = notification.order?.bill;
   const paystackUrl = notification.paystackUrl ?? bill?.paystackUrl;
+  const isPaid = Boolean(bill?.paidAt);
+
+  function downloadReceipt() {
+    if (!bill) return;
+    const receipt = [
+      "Washtownnig Payment Receipt",
+      `Order: ${notification.order?.code ?? notification.title}`,
+      `Paid at: ${bill.paidAt ? new Date(bill.paidAt).toLocaleString() : "Not paid"}`,
+      "",
+      "Items",
+      ...(bill.items ?? []).map((item: any) => `${item.quantity} x ${item.itemName} (${item.serviceType}) @ NGN ${Number(item.unitPrice).toLocaleString()} = NGN ${Number(item.total).toLocaleString()}`),
+      "",
+      `Cleaning subtotal: NGN ${Number(bill.cleaningSubtotal).toLocaleString()}`,
+      `Delivery fee: NGN ${Number(bill.deliveryFee).toLocaleString()}`,
+      `Total paid: NGN ${Number(bill.total).toLocaleString()}`
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([receipt], { type: "text/plain" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${notification.order?.code ?? "washtownnig"}-receipt.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
@@ -63,7 +97,8 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
                 ))}
                 <Summary label="Cleaning subtotal" value={bill.cleaningSubtotal} />
                 <Summary label="Return delivery" value={bill.deliveryFee} />
-                <Summary label="Total to pay" value={bill.total} strong />
+                <Summary label={isPaid ? "Total paid" : "Total to pay"} value={bill.total} strong />
+                {isPaid && bill.paidAt && <p className="text-sm text-slate-500">Paid on {new Date(bill.paidAt).toLocaleString()}</p>}
               </div>
             </div>
           )}
@@ -72,8 +107,9 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
         <aside className="space-y-5">
           <Card className="border-0 p-5 shadow-sm">
             <p className="font-bold">Action</p>
-            <p className="mt-2 text-sm text-slate-500">{paystackUrl ? "Pay with Paystack so washing can begin." : "No payment action is attached to this notification."}</p>
-            {paystackUrl && <Button className="mt-5 h-12 w-full" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay now</Button>}
+            <p className="mt-2 text-sm text-slate-500">{isPaid ? "Payment is complete. You can download your receipt." : paystackUrl ? "Pay with Paystack so washing can begin." : "No payment action is attached to this notification."}</p>
+            {isPaid && <Button className="mt-5 h-12 w-full" onClick={downloadReceipt}><Download className="h-4 w-4" /> Download receipt</Button>}
+            {!isPaid && paystackUrl && <Button className="mt-5 h-12 w-full" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay now</Button>}
           </Card>
         </aside>
       </section>
