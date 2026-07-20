@@ -39,6 +39,7 @@ Implemented flow:
 - `/receipts/[orderId]` is the persistent receipt document page after payment. It shows payment success, total, payment/order metadata, inspected line items, delivery fee, and total paid, with an always-available PDF download button.
 - Customer order and notification bill views show admin-inspected line items, unit prices, cleaning subtotal, return/courier delivery fee, and total.
 - Customer `/request-wash` includes Shipbubble as the default preferred courier provider and sends `preferredProvider` to the backend. Relay requests require tapping `Use my location` so exact pickup coordinates are sent with the order. For home-delivery requests, the backend immediately attempts pickup dispatch and returns the order with any courier tracking details. Customer `/orders` shows courier delivery jobs with provider, leg, status, external reference, and tracking links returned by providers such as Shipbubble or Relay.
+- Customer `/request-wash` quantity fields are plain text inputs with numeric keyboard hints, so they are easier to edit on mobile; values are converted to positive numbers on submit.
 - App-wide toast notifications live in `components/toast-provider.tsx` and should use plain-language copy for non-technical customers.
 - API errors are mapped through `toErrorMessage`/`friendlyErrorMessage` in `lib/api.ts`; keep backend/deployment failures understandable for customers.
 - Network failures from the frontend should remain customer-readable; backend proxy settings should be checked in Vercel/Railway logs.
