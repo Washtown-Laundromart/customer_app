@@ -30,7 +30,7 @@ Implemented flow:
 - `/request-wash` loads live branches from `/api/branches`, refreshes the logged-in user's profile from `/api/auth/me`, submits live orders to `/api/orders`, uses only that user's backend `defaultAddress` as the pickup address, and can capture browser pickup coordinates for courier dispatch.
 - Auth must not copy `defaultAddress` from a previous `localStorage` profile when a different user signs in; each customer's pickup address belongs only to their backend user record.
 - `/orders` loads live customer orders from `/api/orders`; Paystack link appears after branch inspection and bill creation. When Paystack redirects back with `reference` or `trxref`, the page calls `POST /api/orders/payments/verify`, then updates the order to paid state locally.
-- `/orders` polls live orders every 15 seconds so Paystack verification/status changes appear without manual refresh. It lists all customer orders with the selected/current order at the top and defaults to the newest order.
+- `/orders` polls live orders every 15 seconds so Paystack verification/status changes appear without manual refresh. It keeps the selected/current wash order detail UI at the top and paginates the customer order list at 6 orders per page with date/time shown on each order.
 - `/orders` prefers freshly fetched backend orders over the local just-created order so courier `DeliveryJob` rows and tracking links are not hidden by stale client state.
 - Dashboard current wash order is selected from live orders: unpaid/awaiting-payment orders first, then the latest active order, then the latest historical order.
 - Header bell links to `/notifications`.

@@ -12,6 +12,7 @@ export default function OrdersPage() {
   const { token, setToken, order, orders, setOrders } = useCustomerStore();
   const { showToast } = useToast();
   const [selectedOrderId, setSelectedOrderId] = useState<string>();
+  const [ordersPage, setOrdersPage] = useState(1);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -72,6 +73,13 @@ export default function OrdersPage() {
   const billReady = Boolean(paystackUrl);
   const isPaid = Boolean(activeOrder.bill?.paidAt);
   const requestedItems = Array.isArray(activeOrder.requestedItems) ? activeOrder.requestedItems as RequestedItem[] : [];
+  const pageSize = 6;
+  const ordersPageCount = Math.max(1, Math.ceil(sortedOrders.length / pageSize));
+  const paginatedOrders = sortedOrders.slice((ordersPage - 1) * pageSize, ordersPage * pageSize);
+
+  useEffect(() => {
+    setOrdersPage((current) => Math.min(current, ordersPageCount));
+  }, [ordersPageCount]);
 
   if (!token) return null;
 
@@ -174,15 +182,25 @@ export default function OrdersPage() {
           <Card className="border-0 p-5 shadow-sm">
             <h2 className="font-bold">Your orders</h2>
             <div className="mt-4 space-y-2">
-              {sortedOrders.map((item) => (
+              {paginatedOrders.map((item) => (
                 <button key={item.id} className={`w-full rounded-lg border p-3 text-left text-sm transition ${activeOrder.id === item.id ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white hover:bg-slate-50"}`} onClick={() => setSelectedOrderId(item.id)}>
                   <span className="block font-bold">{item.code}</span>
                   <span className="mt-1 block text-xs text-slate-500">{formatStatus(item.status)}</span>
+                  {item.createdAt && <span className="mt-1 block text-xs text-slate-500">{formatDateTime(item.createdAt)}</span>}
                   {item.bill?.paidAt ? <span className="mt-2 inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">Paid</span> : item.bill?.paystackUrl ? <span className="mt-2 inline-block rounded-full bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700">Awaiting payment</span> : null}
                 </button>
               ))}
               {!sortedOrders.length && <p className="text-sm text-slate-500">Your wash requests will appear here.</p>}
             </div>
+            {sortedOrders.length > pageSize && (
+              <div className="mt-4 flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+                <span>Page {ordersPage} of {ordersPageCount}</span>
+                <div className="flex gap-2">
+                  <Button className="h-8 bg-white px-2 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" disabled={ordersPage <= 1} onClick={() => setOrdersPage((current) => Math.max(1, current - 1))}>Previous</Button>
+                  <Button className="h-8 bg-white px-2 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" disabled={ordersPage >= ordersPageCount} onClick={() => setOrdersPage((current) => Math.min(ordersPageCount, current + 1))}>Next</Button>
+                </div>
+              </div>
+            )}
           </Card>
           <Card className="border-0 p-5 shadow-sm">
             <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#13a7a5]" /> Site notification</p>
@@ -212,6 +230,10 @@ function formatNaira(value: number) {
 
 function formatStatus(status: string) {
   return status.replaceAll("_", " ").toLowerCase().replace(/^\w|\s\w/g, (match) => match.toUpperCase());
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
 }
 
 function formatDeliveryLeg(leg: string) {
