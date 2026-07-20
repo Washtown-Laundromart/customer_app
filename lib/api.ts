@@ -116,6 +116,9 @@ export function friendlyErrorMessage(message?: string) {
     return "Profile saving is not available yet. Please try again after the app update is live.";
   }
   if (normalized.includes("no live branches")) return "We could not find any open FreshFold branches yet. Please try again later.";
+  if (normalized.includes("no_same_day_courier_available")) {
+    return "Same-day courier pickup is not available for this route right now. Please try again shortly or contact the branch for help.";
+  }
   if (normalized.includes("missing bearer") || normalized.includes("invalid or expired")) return "Your session has expired. Please log in again.";
   return message && message.length < 140 ? message : "Something went wrong. Please try again.";
 }
