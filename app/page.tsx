@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { ArrowRight, Bell, LogOut, PackageCheck, ReceiptText, Truck, User, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { apiFetch, type Order, type ProfileResponse } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function CustomerDashboard() {
-  const { token, setToken, profile, setProfile, order, setOrders } = useCustomerStore();
+  const { token, setToken, profile, setProfile, orders, setOrders } = useCustomerStore();
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -39,6 +39,29 @@ export default function CustomerDashboard() {
     });
   }, [setOrders, setProfile, setToken, showToast]);
 
+  const currentOrder = useMemo(() => {
+    const activeStatuses = new Set([
+      "PICKUP_REQUESTED",
+      "PICKUP_COURIER_ASSIGNED",
+      "PICKED_UP",
+      "AT_BRANCH",
+      "PRICING",
+      "AWAITING_PAYMENT",
+      "PAID",
+      "WASHING",
+      "DRYING",
+      "IRONING",
+      "BAGGED",
+      "READY",
+      "OUT_FOR_DELIVERY",
+      "READY_FOR_PICKUP"
+    ]);
+    const sorted = [...orders].sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
+    return sorted.find((item) => item.status === "AWAITING_PAYMENT" || (item.bill && !item.bill.paidAt))
+      ?? sorted.find((item) => activeStatuses.has(item.status))
+      ?? sorted[0];
+  }, [orders]);
+
   function signOut() {
     window.localStorage.removeItem("freshfold_customer_token");
     window.localStorage.removeItem("freshfold_customer_profile");
@@ -67,9 +90,9 @@ export default function CustomerDashboard() {
           </Card>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <StatusCard icon={<Truck />} label="Pickup" value={order ? "Courier requested" : "No active pickup"} />
-            <StatusCard icon={<ReceiptText />} label="Billing" value={order?.bill?.paystackUrl ? "Bill ready" : "Awaiting inspection"} />
-            <StatusCard icon={<PackageCheck />} label="Laundry" value={order ? "Pending payment" : "No wash order"} />
+            <StatusCard icon={<Truck />} label="Pickup" value={currentOrder ? "Courier requested" : "No active pickup"} />
+            <StatusCard icon={<ReceiptText />} label="Billing" value={currentOrder?.bill?.paystackUrl && !currentOrder.bill.paidAt ? "Bill ready" : "Awaiting inspection"} />
+            <StatusCard icon={<PackageCheck />} label="Laundry" value={currentOrder ? formatStatus(currentOrder.status) : "No wash order"} />
           </div>
 
           <Card className="border-0 p-4 shadow-sm sm:p-5">
@@ -81,14 +104,14 @@ export default function CustomerDashboard() {
               <Button className="w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-auto" onClick={() => (window.location.href = "/orders")}>View orders</Button>
             </div>
             <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
-              {order ? (
+              {currentOrder ? (
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold text-[#13a7a5]">{order.code ?? "FF-20871"}</p>
-                    <h3 className="mt-1 text-2xl font-bold">{formatStatus(order.status)}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{order.pickupAddress}</p>
+                    <p className="text-sm font-bold text-[#13a7a5]">{currentOrder.code ?? "FF-20871"}</p>
+                    <h3 className="mt-1 text-2xl font-bold">{formatStatus(currentOrder.status)}</h3>
+                    <p className="mt-1 text-sm text-slate-500">{currentOrder.pickupAddress}</p>
                   </div>
-                  <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">{order.bill?.paystackUrl ? "Bill ready" : "Inspection pending"}</span>
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">{currentOrder.bill?.paystackUrl && !currentOrder.bill.paidAt ? "Bill ready" : currentOrder.bill?.paidAt ? "Paid" : "Inspection pending"}</span>
                 </div>
               ) : (
                 <div className="text-center">

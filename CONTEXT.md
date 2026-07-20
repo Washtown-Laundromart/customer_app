@@ -32,6 +32,7 @@ Implemented flow:
 - `/orders` loads live customer orders from `/api/orders`; Paystack link appears after branch inspection and bill creation. When Paystack redirects back with `reference` or `trxref`, the page calls `POST /api/orders/payments/verify`, then updates the order to paid state locally.
 - `/orders` polls live orders every 15 seconds so Paystack verification/status changes appear without manual refresh. It lists all customer orders with the selected/current order at the top and defaults to the newest order.
 - `/orders` prefers freshly fetched backend orders over the local just-created order so courier `DeliveryJob` rows and tracking links are not hidden by stale client state.
+- Dashboard current wash order is selected from live orders: unpaid/awaiting-payment orders first, then the latest active order, then the latest historical order.
 - Header bell links to `/notifications`.
 - `/notifications` shows live in-app notifications such as bill-ready, order update, and branch broadcast messages. It starts with a loading state and no longer flashes demo notifications for real users.
 - `/notifications/[id]` shows notification details, bill breakdown when attached, and Paystack payment CTA when available. Real users no longer fall back to demo notification content.
