@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Bell, CreditCard, ExternalLink, Mail, PackageCheck, ReceiptText, Truck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { useCustomerStore } from "@/lib/store";
 export default function OrdersPage() {
   const { token, setToken, order, orders, setOrders } = useCustomerStore();
   const { showToast } = useToast();
+  const [selectedOrderId, setSelectedOrderId] = useState<string>();
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -21,15 +22,19 @@ export default function OrdersPage() {
     setToken(savedToken);
     const params = new URLSearchParams(window.location.search);
     const reference = params.get("reference") ?? params.get("trxref");
-    const loadOrders = () => apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders);
+    const loadOrders = () => apiFetch<Order[]>("/api/orders", {}, savedToken).then((result) => {
+      setOrders(result);
+      if (!selectedOrderId && result[0]) setSelectedOrderId(result[0].id);
+    });
     const verifyPayment = reference
       ? apiFetch<{ order: Order }>("/api/orders/payments/verify", {
         method: "POST",
         body: JSON.stringify({ reference })
       }, savedToken).then((result) => {
-        setOrders([result.order]);
         window.history.replaceState({}, "", "/orders");
+        setSelectedOrderId(result.order.id);
         showToast({ type: "success", title: "Payment confirmed", message: "Your payment has been verified and your order is now in cleaning." });
+        return loadOrders();
       })
       : loadOrders();
 
@@ -39,11 +44,24 @@ export default function OrdersPage() {
         showToast({ type: "error", title: "Could not load orders", message: "We could not get your orders right now. Please refresh the page." });
       });
     });
-  }, [setOrders, setToken, showToast]);
+    const interval = window.setInterval(() => {
+      loadOrders().catch(() => undefined);
+    }, 15000);
+    return () => window.clearInterval(interval);
+  }, [selectedOrderId, setOrders, setToken, showToast]);
 
-  if (!token) return null;
+  const sortedOrders = useMemo(() => {
+    const byId = new Map<string, Order>();
+    orders.forEach((item) => byId.set(item.id, item));
+    if (order) byId.set(order.id, order);
+    return Array.from(byId.values()).sort((a, b) => {
+      if (selectedOrderId && a.id === selectedOrderId) return -1;
+      if (selectedOrderId && b.id === selectedOrderId) return 1;
+      return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
+    });
+  }, [order, orders, selectedOrderId]);
 
-  const activeOrder = order ?? orders[0] ?? {
+  const activeOrder = sortedOrders.find((item) => item.id === selectedOrderId) ?? sortedOrders[0] ?? {
     id: "demo-order",
     code: "FF-20871",
     requestedItems: [{ itemType: "Shirt", quantity: 5 }],
@@ -54,6 +72,8 @@ export default function OrdersPage() {
   const billReady = Boolean(paystackUrl);
   const isPaid = Boolean(activeOrder.bill?.paidAt);
   const requestedItems = Array.isArray(activeOrder.requestedItems) ? activeOrder.requestedItems as RequestedItem[] : [];
+
+  if (!token) return null;
 
   return (
     <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
@@ -151,6 +171,19 @@ export default function OrdersPage() {
         </Card>
 
         <aside className="space-y-5">
+          <Card className="border-0 p-5 shadow-sm">
+            <h2 className="font-bold">Your orders</h2>
+            <div className="mt-4 space-y-2">
+              {sortedOrders.map((item) => (
+                <button key={item.id} className={`w-full rounded-lg border p-3 text-left text-sm transition ${activeOrder.id === item.id ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white hover:bg-slate-50"}`} onClick={() => setSelectedOrderId(item.id)}>
+                  <span className="block font-bold">{item.code}</span>
+                  <span className="mt-1 block text-xs text-slate-500">{formatStatus(item.status)}</span>
+                  {item.bill?.paidAt ? <span className="mt-2 inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">Paid</span> : item.bill?.paystackUrl ? <span className="mt-2 inline-block rounded-full bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700">Awaiting payment</span> : null}
+                </button>
+              ))}
+              {!sortedOrders.length && <p className="text-sm text-slate-500">Your wash requests will appear here.</p>}
+            </div>
+          </Card>
           <Card className="border-0 p-5 shadow-sm">
             <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#13a7a5]" /> Site notification</p>
             <p className="mt-3 text-sm text-slate-500">{billReady ? "Payment link received from branch." : "Waiting for bill from the laundromart."}</p>
