@@ -33,7 +33,7 @@ export const useCustomerStore = create<CustomerState>((set) => ({
   orders: [],
   setToken: (token) => set({ token }),
   setBranch: (branch) => set({ branch }),
-  setOrders: (orders) => set({ orders, order: orders[0] }),
+  setOrders: (orders) => set({ orders }),
   setOrder: (order) => set({ order }),
   setProfile: (profile) => set({ profile })
 }));

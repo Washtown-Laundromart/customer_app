@@ -53,7 +53,7 @@ export default function OrdersPage() {
   const sortedOrders = useMemo(() => {
     const byId = new Map<string, Order>();
     orders.forEach((item) => byId.set(item.id, item));
-    if (order) byId.set(order.id, order);
+    if (order && !byId.has(order.id)) byId.set(order.id, order);
     return Array.from(byId.values()).sort((a, b) => {
       if (selectedOrderId && a.id === selectedOrderId) return -1;
       if (selectedOrderId && b.id === selectedOrderId) return 1;
