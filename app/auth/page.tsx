@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Check, Eye, EyeOff, ShieldCheck, WashingMachine } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, KeyRound, Mail, ShieldCheck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
@@ -11,13 +11,15 @@ import { useCustomerStore } from "@/lib/store";
 export default function CustomerAuthPage() {
   const { setToken, setProfile } = useCustomerStore();
   const { showToast } = useToast();
-  const [mode, setMode] = useState<"register" | "login">("register");
+  const [mode, setMode] = useState<"register" | "login" | "reset">("register");
+  const [resetStep, setResetStep] = useState<"request" | "confirm">("request");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
     phone: "",
-    password: ""
+    password: "",
+    otp: ""
   });
 
   async function submit() {
@@ -53,6 +55,52 @@ export default function CustomerAuthPage() {
     }
   }
 
+  async function requestResetOtp() {
+    setIsSubmitting(true);
+    try {
+      await apiFetch<{ message: string }>("/api/auth/forgot-password/request", { method: "POST", body: JSON.stringify({ email: form.email }) });
+      setResetStep("confirm");
+      showToast({
+        type: "success",
+        title: "Check your email",
+        message: "If this customer account exists, a reset code has been sent."
+      });
+    } catch (error) {
+      showToast({ type: "error", title: "Could not send code", message: toErrorMessage(error) });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function resetPassword() {
+    setIsSubmitting(true);
+    try {
+      await apiFetch<{ message: string }>("/api/auth/forgot-password/reset", {
+        method: "POST",
+        body: JSON.stringify({ email: form.email, otp: form.otp, password: form.password })
+      });
+      setMode("login");
+      setResetStep("request");
+      setForm({ ...form, otp: "", password: "" });
+      showToast({
+        type: "success",
+        title: "Password updated",
+        message: "You can now log in with your new password."
+      });
+    } catch (error) {
+      showToast({ type: "error", title: "Could not reset password", message: toErrorMessage(error) });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function switchMode(nextMode: "register" | "login" | "reset") {
+    setMode(nextMode);
+    if (nextMode !== "reset") setResetStep("request");
+  }
+
+  const isResetMode = mode === "reset";
+
   return (
     <main className="grid min-h-screen bg-[#f7faf9] text-[#102532] lg:grid-cols-[0.95fr_1.05fr]">
       <section className="flex flex-col justify-between bg-[#102532] p-6 text-white lg:p-10">
@@ -84,24 +132,37 @@ export default function CustomerAuthPage() {
         <Card className="w-full max-w-xl border-0 p-6 shadow-xl shadow-slate-200">
           <div className="mb-6 flex rounded-lg bg-slate-100 p-1">
             {(["register", "login"] as const).map((item) => (
-              <button key={item} onClick={() => setMode(item)} className={`h-10 flex-1 rounded-md text-sm font-bold capitalize ${mode === item ? "bg-white shadow-sm" : "text-slate-500"}`}>
+              <button key={item} onClick={() => switchMode(item)} className={`h-10 flex-1 rounded-md text-sm font-bold capitalize ${mode === item ? "bg-white shadow-sm" : "text-slate-500"}`}>
                 {item}
               </button>
             ))}
           </div>
-          <h2 className="text-2xl font-bold">{mode === "register" ? "Create your account" : "Welcome back"}</h2>
-          <p className="mt-1 text-sm text-slate-500">Auth stays here. The main app starts after this screen.</p>
+          <h2 className="text-2xl font-bold">{mode === "register" ? "Create your account" : isResetMode ? "Reset your password" : "Welcome back"}</h2>
+          <p className="mt-1 text-sm text-slate-500">{isResetMode ? "Use the OTP sent to your email to set a new password." : "Auth stays here. The main app starts after this screen."}</p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {mode === "register" && <Field label="Full name" value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} />}
             {mode === "register" && <Field label="Phone" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />}
             <Field label="Email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
-            <Field label="Password" type="password" value={form.password} onChange={(value) => setForm({ ...form, password: value })} />
+            {!isResetMode && <Field label="Password" type="password" value={form.password} onChange={(value) => setForm({ ...form, password: value })} />}
+            {isResetMode && resetStep === "confirm" && <Field label="OTP code" value={form.otp} onChange={(value) => setForm({ ...form, otp: value.replace(/\D/g, "").slice(0, 6) })} />}
+            {isResetMode && resetStep === "confirm" && <Field label="New password" type="password" value={form.password} onChange={(value) => setForm({ ...form, password: value })} />}
           </div>
 
-          <Button className="mt-6 h-12 w-full bg-[#102532] hover:bg-[#1b3544]" disabled={isSubmitting} onClick={submit}>
-            {isSubmitting ? "Please wait..." : mode === "register" ? "Create account" : "Log in"} <ArrowRight className="h-4 w-4" />
+          <Button className="mt-6 h-12 w-full bg-[#102532] hover:bg-[#1b3544]" disabled={isSubmitting} onClick={isResetMode ? resetStep === "request" ? requestResetOtp : resetPassword : submit}>
+            {isSubmitting ? "Please wait..." : mode === "register" ? "Create account" : isResetMode ? resetStep === "request" ? "Send OTP" : "Reset password" : "Log in"}
+            {isResetMode ? resetStep === "request" ? <Mail className="h-4 w-4" /> : <KeyRound className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </Button>
+          {mode === "login" && (
+            <button type="button" className="mt-4 w-full text-sm font-bold text-[#0b817f] hover:text-[#102532]" onClick={() => switchMode("reset")}>
+              Forgot password?
+            </button>
+          )}
+          {isResetMode && (
+            <button type="button" className="mt-4 w-full text-sm font-bold text-[#0b817f] hover:text-[#102532]" onClick={() => switchMode("login")}>
+              Back to login
+            </button>
+          )}
         </Card>
       </section>
     </main>

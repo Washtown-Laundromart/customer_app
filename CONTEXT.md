@@ -24,6 +24,7 @@ Implemented flow:
 - Separate `/auth` register/login entry screen
 - Main app redirects to `/auth` when no customer token exists
 - `/auth` calls live backend register/login endpoints, stores returned user details, and no longer pre-fills mock form values.
+- `/auth` includes customer forgot-password recovery using email OTP. It calls `POST /api/auth/forgot-password/request`, then accepts the 6-digit OTP plus a new password and calls `POST /api/auth/forgot-password/reset`.
 - `/` customer dashboard loads live customer orders from `/api/orders`, keeps profile details from storage/API, and shows readable toast errors if order loading fails.
 - `/profile` loads and saves profile details through `/api/auth/me`; `defaultAddress` is persisted on the backend instead of only in browser storage.
 - `/request-wash` loads live branches from `/api/branches`, refreshes the logged-in user's profile from `/api/auth/me`, submits live orders to `/api/orders`, and uses only that user's backend `defaultAddress` as the pickup address.
@@ -34,6 +35,7 @@ Implemented flow:
 - `/notifications/[id]` shows notification details, bill breakdown when attached, and Paystack payment CTA when available. Real users no longer fall back to demo notification content.
 - `/receipts/[orderId]` is the persistent receipt document page after payment. It shows payment success, total, payment/order metadata, inspected line items, delivery fee, and total paid, with an always-available PDF download button.
 - Customer order and notification bill views show admin-inspected line items, unit prices, cleaning subtotal, return/courier delivery fee, and total.
+- Customer `/request-wash` includes Shipbubble as the default preferred courier provider. Customer `/orders` shows courier delivery jobs with provider, leg, status, external reference, and tracking links returned by providers such as Shipbubble.
 - App-wide toast notifications live in `components/toast-provider.tsx` and should use plain-language copy for non-technical customers.
 - API errors are mapped through `toErrorMessage`/`friendlyErrorMessage` in `lib/api.ts`; keep backend/deployment failures understandable for customers.
 - Network failures from the frontend should remain customer-readable; backend proxy settings should be checked in Vercel/Railway logs.

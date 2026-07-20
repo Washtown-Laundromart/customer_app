@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ArrowLeft, Bell, CreditCard, Mail, PackageCheck, ReceiptText, WashingMachine } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, ExternalLink, Mail, PackageCheck, ReceiptText, Truck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
@@ -93,6 +93,29 @@ export default function OrdersPage() {
             </div>
           </div>
 
+          {!!activeOrder.deliveries?.length && (
+            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+              <h2 className="flex items-center gap-2 text-xl font-bold"><Truck className="h-5 w-5 text-[#13a7a5]" /> Courier tracking</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {activeOrder.deliveries.map((delivery) => (
+                  <div key={delivery.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <strong>{delivery.provider}</strong>
+                      <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-slate-500">{formatDeliveryLeg(delivery.leg)}</span>
+                    </div>
+                    <p className="mt-2 text-slate-500">{formatStatus(delivery.status)}</p>
+                    {delivery.externalDeliveryId && <p className="mt-1 text-xs text-slate-500">Tracking ref: {delivery.externalDeliveryId}</p>}
+                    {delivery.trackingUrl && (
+                      <Button className="mt-3 h-10 w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => window.open(delivery.trackingUrl ?? "", "_blank", "noopener,noreferrer")}>
+                        Track delivery <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 rounded-xl border border-dashed border-slate-300 p-5">
             {billReady ? (
               <div>
@@ -152,4 +175,12 @@ function Summary({ label, value, strong }: { label: string; value: number; stron
 
 function formatNaira(value: number) {
   return `NGN ${Number(value).toLocaleString()}`;
+}
+
+function formatStatus(status: string) {
+  return status.replaceAll("_", " ").toLowerCase().replace(/^\w|\s\w/g, (match) => match.toUpperCase());
+}
+
+function formatDeliveryLeg(leg: string) {
+  return leg === "PICKUP_TO_BRANCH" ? "Pickup to branch" : "Return to customer";
 }
