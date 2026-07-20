@@ -65,6 +65,10 @@ export type Order = {
   code: string;
   status: string;
   pickupAddress: string;
+  pickupLatitude?: number | null;
+  pickupLongitude?: number | null;
+  dropoffLatitude?: number | null;
+  dropoffLongitude?: number | null;
   requestedItems?: RequestedItem[] | unknown;
   branch?: Branch;
   bill?: Bill | null;

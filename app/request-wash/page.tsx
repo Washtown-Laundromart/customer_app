@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Minus, Plus, Send, Truck, WashingMachine } from "lucide-react";
+import { ArrowLeft, LocateFixed, Minus, Plus, Send, Truck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/toast-provider";
@@ -16,7 +16,9 @@ export default function RequestWashPage() {
   const { showToast } = useToast();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [pickupAddress, setPickupAddress] = useState(profile.defaultAddress);
+  const [pickupCoordinates, setPickupCoordinates] = useState<{ latitude: number; longitude: number }>();
   const [provider, setProvider] = useState<(typeof providers)[number]>("SHIPBUBBLE");
   const [note, setNote] = useState("Please inspect for stains before billing.");
   const [items, setItems] = useState<RequestedItem[]>([{ itemType: "Shirt", quantity: 5 }]);
@@ -62,6 +64,34 @@ export default function RequestWashPage() {
     setItems((current) => current.filter((_, itemIndex) => itemIndex !== index));
   }
 
+  function updatePickupAddress(value: string) {
+    setPickupAddress(value);
+    setPickupCoordinates(undefined);
+  }
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      showToast({ type: "error", title: "Location unavailable", message: "Your browser cannot share your current location. Please enter a clear pickup address." });
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition((position) => {
+      setPickupCoordinates({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      });
+      setIsLocating(false);
+      showToast({ type: "success", title: "Location saved", message: "We will send these pickup coordinates with your wash request." });
+    }, () => {
+      setIsLocating(false);
+      showToast({ type: "error", title: "Location not shared", message: "Allow location access or use another courier provider while testing." });
+    }, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 60000
+    });
+  }
+
   async function submitRequest() {
     setIsSubmitting(true);
     try {
@@ -72,11 +102,16 @@ export default function RequestWashPage() {
       if (!selectedBranch) {
         throw new Error("Please select a branch before sending your request.");
       }
+      if (provider === "RELAY" && !pickupCoordinates) {
+        throw new Error("Tap Use my location before submitting a Relay pickup so the courier receives exact coordinates.");
+      }
       const created = await apiFetch<Order>("/api/orders", {
         method: "POST",
         body: JSON.stringify({
           branchId: selectedBranch.id,
           pickupAddress,
+          pickupLatitude: pickupCoordinates?.latitude,
+          pickupLongitude: pickupCoordinates?.longitude,
           customerNote: `${note}\nPreferred provider: ${provider}`,
           preferredProvider: provider,
           requestedItems: items,
@@ -119,7 +154,15 @@ export default function RequestWashPage() {
               <Field label="Full name" value={profile.fullName} readOnly />
               <Field label="Phone number" value={profile.phone} readOnly />
               <Field label="Email" value={profile.email} readOnly />
-              <Field label="Pickup address" value={pickupAddress} onChange={setPickupAddress} />
+              <div>
+                <Field label="Pickup address" value={pickupAddress} onChange={updatePickupAddress} />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button className="h-9 bg-white px-3 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" type="button" disabled={isLocating} onClick={useCurrentLocation}>
+                    <LocateFixed className="h-3.5 w-3.5" /> {isLocating ? "Getting location..." : "Use my location"}
+                  </Button>
+                  {pickupCoordinates && <span className="text-xs font-semibold text-[#0b817f]">Coordinates saved</span>}
+                </div>
+              </div>
             </div>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">Nearest branch<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={selectedBranch?.id ?? ""} onChange={(event) => setBranch(branches.find((item) => item.id === event.target.value) ?? branches[0])} disabled={!branches.length}>{branches.length ? branches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>) : <option value="">No live branches found</option>}</select></label>
