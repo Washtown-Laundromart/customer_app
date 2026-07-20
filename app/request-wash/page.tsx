@@ -78,6 +78,7 @@ export default function RequestWashPage() {
           branchId: selectedBranch.id,
           pickupAddress,
           customerNote: `${note}\nPreferred provider: ${provider}`,
+          preferredProvider: provider,
           requestedItems: items,
           fulfillmentMethod: "HOME_DELIVERY"
         })
@@ -86,7 +87,7 @@ export default function RequestWashPage() {
       showToast({
         type: "success",
         title: "Wash request sent",
-        message: `Your order ${created.code} has been sent to the branch for pickup review.`
+        message: created.status === "PICKUP_COURIER_ASSIGNED" ? `Your order ${created.code} has been sent and pickup tracking is ready.` : `Your order ${created.code} has been sent to the branch for pickup review.`
       });
       window.location.href = "/orders";
     } catch (error) {
