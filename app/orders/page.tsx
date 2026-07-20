@@ -56,11 +56,9 @@ export default function OrdersPage() {
     orders.forEach((item) => byId.set(item.id, item));
     if (order && !byId.has(order.id)) byId.set(order.id, order);
     return Array.from(byId.values()).sort((a, b) => {
-      if (selectedOrderId && a.id === selectedOrderId) return -1;
-      if (selectedOrderId && b.id === selectedOrderId) return 1;
       return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
     });
-  }, [order, orders, selectedOrderId]);
+  }, [order, orders]);
 
   const activeOrder = sortedOrders.find((item) => item.id === selectedOrderId) ?? sortedOrders[0] ?? {
     id: "demo-order",
