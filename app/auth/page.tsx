@@ -103,8 +103,12 @@ export default function CustomerAuthPage() {
 
   return (
     <main className="grid min-h-screen bg-[#f4f7fb] text-slate-950 lg:grid-cols-[0.95fr_1.05fr]">
-      <section className="flex flex-col justify-between bg-[#0b4ea2] p-6 text-white lg:p-10">
-        <div className="flex items-center gap-3">
+      <section className="relative hidden min-h-screen overflow-hidden text-white lg:flex lg:flex-col lg:justify-between lg:p-10">
+        <video className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+          <source src="/auth-background.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-slate-950/55" />
+        <div className="relative flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white p-1.5">
             <img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" />
           </div>
@@ -113,7 +117,7 @@ export default function CustomerAuthPage() {
             <p className="text-sm text-slate-300">Laundry pickup and delivery</p>
           </div>
         </div>
-        <div className="my-16 max-w-xl">
+        <div className="relative my-16 max-w-xl">
           <p className="text-sm font-bold uppercase text-red-100">Customer access</p>
           <h1 className="mt-4 text-5xl font-bold leading-tight">Start a laundry order from the nearest branch.</h1>
           <div className="mt-8 grid gap-3 text-sm text-slate-200">
@@ -122,7 +126,7 @@ export default function CustomerAuthPage() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-300">
+        <div className="relative flex items-center gap-2 text-sm text-slate-300">
           <ShieldCheck className="h-4 w-4 text-red-200" />
           Secure customer account
         </div>
@@ -130,6 +134,15 @@ export default function CustomerAuthPage() {
 
       <section className="flex items-center justify-center p-5">
         <Card className="w-full max-w-xl border-0 p-6 shadow-xl shadow-slate-200">
+          <div className="mb-6 flex items-center gap-3 lg:hidden">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200">
+              <img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-[#0b4ea2]">Washtownnig</p>
+              <p className="text-xs text-slate-500">Laundry pickup and delivery</p>
+            </div>
+          </div>
           <div className="mb-6 flex rounded-lg bg-slate-100 p-1">
             {(["register", "login"] as const).map((item) => (
               <button key={item} onClick={() => switchMode(item)} className={`h-10 flex-1 rounded-md text-sm font-bold capitalize ${mode === item ? "bg-white shadow-sm" : "text-slate-500"}`}>
