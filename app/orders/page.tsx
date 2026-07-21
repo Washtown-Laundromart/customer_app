@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Bell, CreditCard, ExternalLink, Mail, PackageCheck, ReceiptText, Truck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
 import { apiFetch, type Order, type RequestedItem } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
@@ -13,6 +14,7 @@ export default function OrdersPage() {
   const { showToast } = useToast();
   const [selectedOrderId, setSelectedOrderId] = useState<string>();
   const [ordersPage, setOrdersPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -26,7 +28,7 @@ export default function OrdersPage() {
     const loadOrders = () => apiFetch<Order[]>("/api/orders", {}, savedToken).then((result) => {
       setOrders(result);
       if (!selectedOrderId && result[0]) setSelectedOrderId(result[0].id);
-    });
+    }).finally(() => setIsLoading(false));
     const verifyPayment = reference
       ? apiFetch<{ order: Order }>("/api/orders/payments/verify", {
         method: "POST",
@@ -92,6 +94,10 @@ export default function OrdersPage() {
 
       <section className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[1fr_360px]">
         <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
+          {isLoading ? (
+            <OrderDetailSkeleton />
+          ) : (
+          <>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-sm font-bold text-[#13a7a5]">{activeOrder.code}</p>
@@ -174,13 +180,22 @@ export default function OrdersPage() {
               </div>
             )}
           </div>
+          </>
+          )}
         </Card>
 
         <aside className="space-y-5">
           <Card className="border-0 p-5 shadow-sm">
             <h2 className="font-bold">Your orders</h2>
             <div className="mt-4 space-y-2">
-              {paginatedOrders.map((item) => (
+              {isLoading && Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="mt-3 h-3 w-28" />
+                  <Skeleton className="mt-2 h-3 w-36" />
+                </div>
+              ))}
+              {!isLoading && paginatedOrders.map((item) => (
                 <button key={item.id} className={`w-full rounded-lg border p-3 text-left text-sm transition ${activeOrder.id === item.id ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white hover:bg-slate-50"}`} onClick={() => setSelectedOrderId(item.id)}>
                   <span className="block font-bold">{item.code}</span>
                   <span className="mt-1 block text-xs text-slate-500">{formatStatus(item.status)}</span>
@@ -188,7 +203,7 @@ export default function OrdersPage() {
                   {item.bill?.paidAt ? <span className="mt-2 inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">Paid</span> : item.bill?.paystackUrl ? <span className="mt-2 inline-block rounded-full bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700">Awaiting payment</span> : null}
                 </button>
               ))}
-              {!sortedOrders.length && <p className="text-sm text-slate-500">Your wash requests will appear here.</p>}
+              {!isLoading && !sortedOrders.length && <p className="text-sm text-slate-500">Your wash requests will appear here.</p>}
             </div>
             {sortedOrders.length > pageSize && (
               <div className="mt-4 flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
@@ -216,6 +231,26 @@ export default function OrdersPage() {
 
 function Stage({ label, active, done }: { label: string; active?: boolean; done?: boolean }) {
   return <div className={`rounded-xl border p-4 ${active ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white"}`}><div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${done ? "bg-emerald-500 text-white" : active ? "bg-[#13a7a5] text-white" : "bg-slate-100 text-slate-400"}`}>{done ? "✓" : "•"}</div><p className="font-bold">{label}</p></div>;
+}
+
+function OrderDetailSkeleton() {
+  return (
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="mt-3 h-8 w-56" />
+          <Skeleton className="mt-3 h-4 w-80 max-w-full" />
+        </div>
+        <Skeleton className="h-8 w-24 rounded-full" />
+      </div>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-xl" />)}
+      </div>
+      <Skeleton className="mt-6 h-40 rounded-xl" />
+      <Skeleton className="mt-6 h-48 rounded-xl" />
+    </div>
+  );
 }
 
 function Summary({ label, value, strong }: { label: string; value: number; strong?: boolean }) {

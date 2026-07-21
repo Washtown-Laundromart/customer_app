@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Bell, CreditCard, Mail, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
@@ -42,7 +43,17 @@ export default function NotificationsPage() {
           <h1 className="text-2xl font-bold sm:text-3xl">Notification inbox</h1>
           <p className="mt-2 text-sm text-slate-500">When a branch admin sends your order bill, it appears here with the full breakdown and Paystack payment action.</p>
           <div className="mt-6 space-y-3">
-            {isLoading && <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">Loading notifications...</p>}
+            {isLoading && Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex gap-3">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="mt-3 h-3 w-3/4" />
+                  </div>
+                </div>
+              </div>
+            ))}
             {notifications.map((notification) => (
               <button key={notification.id} onClick={() => (window.location.href = `/notifications/${notification.id}`)} className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-[#13a7a5] hover:bg-cyan-50">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

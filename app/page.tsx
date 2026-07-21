@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Bell, LogOut, PackageCheck, ReceiptText, Truck, User, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
 import { apiFetch, type Order, type ProfileResponse } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
@@ -11,6 +12,7 @@ import { useCustomerStore } from "@/lib/store";
 export default function CustomerDashboard() {
   const { token, setToken, profile, setProfile, orders, setOrders } = useCustomerStore();
   const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -36,7 +38,7 @@ export default function CustomerDashboard() {
     apiFetch<Order[]>("/api/orders", {}, savedToken).then(setOrders).catch(() => {
       setOrders([]);
       showToast({ type: "error", title: "Could not load orders", message: "Your account is open, but we could not load your latest orders. Please refresh the page." });
-    });
+    }).finally(() => setIsLoading(false));
   }, [setOrders, setProfile, setToken, showToast]);
 
   const currentOrder = useMemo(() => {
@@ -89,11 +91,11 @@ export default function CustomerDashboard() {
             </div>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          {isLoading ? <DashboardSkeleton /> : <div className="grid gap-4 md:grid-cols-3">
             <StatusCard icon={<Truck />} label="Pickup" value={currentOrder ? "Courier requested" : "No active pickup"} />
             <StatusCard icon={<ReceiptText />} label="Billing" value={currentOrder?.bill?.paystackUrl && !currentOrder.bill.paidAt ? "Bill ready" : "Awaiting inspection"} />
             <StatusCard icon={<PackageCheck />} label="Laundry" value={currentOrder ? formatStatus(currentOrder.status) : "No wash order"} />
-          </div>
+          </div>}
 
           <Card className="border-0 p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -104,7 +106,16 @@ export default function CustomerDashboard() {
               <Button className="w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-auto" onClick={() => (window.location.href = "/orders")}>View orders</Button>
             </div>
             <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
-              {currentOrder ? (
+              {isLoading ? (
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="mt-3 h-8 w-40" />
+                    <Skeleton className="mt-3 h-4 w-64" />
+                  </div>
+                  <Skeleton className="h-8 w-28 rounded-full" />
+                </div>
+              ) : currentOrder ? (
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-bold text-[#13a7a5]">{currentOrder.code ?? "FF-20871"}</p>
@@ -126,6 +137,22 @@ export default function CustomerDashboard() {
 
         <aside className="space-y-5">
           <Card className="border-0 p-5 shadow-sm">
+            {isLoading ? (
+              <div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-12 w-12 rounded-lg" />
+                  <div>
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="mt-2 h-3 w-24" />
+                  </div>
+                </div>
+                <div className="mt-5 space-y-3">
+                  <Skeleton className="h-12" />
+                  <Skeleton className="h-12" />
+                </div>
+              </div>
+            ) : (
+            <>
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-50 text-[#13a7a5]">
                 <User className="h-6 w-6" />
@@ -140,6 +167,8 @@ export default function CustomerDashboard() {
               <Info label="Pickup address" value={profile.defaultAddress} />
             </div>
             <Button className="mt-5 w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/profile")}>Edit profile</Button>
+            </>
+            )}
           </Card>
 
           <Card className="border-0 p-5 shadow-sm">
@@ -178,6 +207,20 @@ function Header({ onSignOut }: { onSignOut: () => void }) {
 
 function StatusCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return <Card className="border-0 p-5 shadow-sm"><div className="text-[#13a7a5]">{icon}</div><p className="mt-4 text-sm font-semibold text-slate-500">{label}</p><p className="mt-1 font-bold">{value}</p></Card>;
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <Card key={index} className="border-0 p-5 shadow-sm">
+          <Skeleton className="h-6 w-6" />
+          <Skeleton className="mt-4 h-4 w-20" />
+          <Skeleton className="mt-3 h-5 w-32" />
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 function Info({ label, value }: { label: string; value: string }) {

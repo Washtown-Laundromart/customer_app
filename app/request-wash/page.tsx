@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, LocateFixed, Minus, Plus, Send, Truck, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
 import { apiFetch, toErrorMessage, type Branch, type Order, type ProfileResponse } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
@@ -15,6 +16,7 @@ export default function RequestWashPage() {
   const { token, setToken, profile, setProfile, branch, setBranch, setOrder } = useCustomerStore();
   const { showToast } = useToast();
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [pickupAddress, setPickupAddress] = useState(profile.defaultAddress);
@@ -49,7 +51,7 @@ export default function RequestWashPage() {
         setPickupAddress("");
       });
     }
-    apiFetch<Branch[]>("/api/branches").then(setBranches).catch(() => setBranches([]));
+    apiFetch<Branch[]>("/api/branches").then(setBranches).catch(() => setBranches([])).finally(() => setIsLoading(false));
   }, [setProfile, setToken]);
 
   const hasLiveBranches = branches.length > 0;
@@ -150,6 +152,11 @@ export default function RequestWashPage() {
           <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
             <h1 className="text-2xl font-bold sm:text-3xl">Pickup and courier details</h1>
             <p className="mt-2 text-slate-500">These are the details the backend will use when creating a courier pickup job.</p>
+            {isLoading ? (
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-20" />)}
+              </div>
+            ) : (
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Field label="Full name" value={profile.fullName} readOnly />
               <Field label="Phone number" value={profile.phone} readOnly />
@@ -164,6 +171,7 @@ export default function RequestWashPage() {
                 </div>
               </div>
             </div>
+            )}
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">Nearest branch<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={selectedBranch?.id ?? ""} onChange={(event) => setBranch(branches.find((item) => item.id === event.target.value) ?? branches[0])} disabled={!branches.length}>{branches.length ? branches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>) : <option value="">No live branches found</option>}</select></label>
               <label className="text-sm font-semibold text-slate-700">Preferred courier provider<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={provider} onChange={(event) => setProvider(event.target.value as typeof provider)}>{providers.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -202,7 +210,7 @@ export default function RequestWashPage() {
               <Summary label="Clothes count" value={`${totalClothes} items`} />
               <Summary label="Billing" value="After inspection" />
             </div>
-            <Button className="mt-6 h-12 w-full bg-white text-[#102532] hover:bg-slate-100" disabled={isSubmitting || !items.length} onClick={submitRequest}>
+            <Button className="mt-6 h-12 w-full bg-white text-[#102532] hover:bg-slate-100" disabled={isLoading || isSubmitting || !items.length} onClick={submitRequest}>
               {isSubmitting ? "Submitting..." : "Submit wash request"} <Send className="h-4 w-4" />
             </Button>
           </Card>

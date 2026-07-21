@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Download, ReceiptText, WashingMachine } from "lucide-
 import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
 import { apiFetch, type Order } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
@@ -98,7 +99,19 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
           </Button>
         </div>
 
-        {isLoading && <Card className="border-0 p-6 text-center text-sm text-slate-500 shadow-xl">Loading receipt...</Card>}
+        {isLoading && (
+          <Card className="overflow-hidden border-0 bg-[#20252c] p-6 text-white shadow-2xl sm:p-8">
+            <Skeleton className="mx-auto h-16 w-16 rounded-full bg-white/20" />
+            <Skeleton className="mx-auto mt-6 h-7 w-48 bg-white/20" />
+            <Skeleton className="mx-auto mt-3 h-4 w-64 bg-white/10" />
+            <div className="my-8 border-t border-white/15" />
+            <Skeleton className="mx-auto h-4 w-28 bg-white/10" />
+            <Skeleton className="mx-auto mt-3 h-10 w-44 bg-white/20" />
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-16 bg-white/10" />)}
+            </div>
+          </Card>
+        )}
         {!isLoading && (!order || !bill) && (
           <Card className="border-0 p-6 text-center shadow-xl">
             <h1 className="text-2xl font-bold">Receipt unavailable</h1>

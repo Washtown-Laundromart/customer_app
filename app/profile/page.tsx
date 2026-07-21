@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Save, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
 import { apiFetch, toErrorMessage, type ProfileResponse } from "@/lib/api";
 import { CustomerProfile, useCustomerStore } from "@/lib/store";
@@ -12,6 +13,7 @@ export default function ProfilePage() {
   const { profile, setProfile, setToken } = useCustomerStore();
   const { showToast } = useToast();
   const [form, setForm] = useState<CustomerProfile>(profile);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -38,7 +40,7 @@ export default function ProfilePage() {
       setForm(profileFromApi);
     }).catch(() => {
       showToast({ type: "error", title: "Could not load profile", message: "We could not get your saved profile details. Please refresh the page." });
-    });
+    }).finally(() => setIsLoading(false));
   }, [setProfile, setToken, showToast]);
 
   async function saveProfile() {
@@ -79,13 +81,19 @@ export default function ProfilePage() {
         <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
           <h1 className="text-2xl font-bold sm:text-3xl">Profile details</h1>
           <p className="mt-2 text-slate-500">These details are reused when requesting Relay, Bolt or Kwik pickup through the backend.</p>
+          {isLoading ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-20" />)}
+            </div>
+          ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <Field label="Full name" value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} />
             <Field label="Phone number" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
             <Field label="Email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
             <Field label="Default pickup address" value={form.defaultAddress} onChange={(value) => setForm({ ...form, defaultAddress: value })} />
           </div>
-          <Button className="mt-6 h-12 w-full" onClick={saveProfile}><Save className="h-4 w-4" /> Save profile</Button>
+          )}
+          <Button className="mt-6 h-12 w-full" disabled={isLoading} onClick={saveProfile}><Save className="h-4 w-4" /> Save profile</Button>
         </Card>
       </section>
     </main>

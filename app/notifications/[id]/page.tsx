@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import { ArrowLeft, Bell, CreditCard, Download, ReceiptText, WashingMachine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
@@ -39,7 +40,29 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
       </main>
     );
   }
-  if (!notification) return null;
+  if (!notification) {
+    return (
+      <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
+        <header className="border-b border-slate-200 bg-white">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#102532] text-white"><WashingMachine className="h-5 w-5" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Notification details</p><p className="truncate text-xs text-slate-500">Review message and payment action</p></div></div>
+          </div>
+        </header>
+        <section className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[1fr_360px]">
+          <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
+            <Skeleton className="h-12 w-12 rounded-lg" />
+            <Skeleton className="mt-5 h-8 w-2/3" />
+            <Skeleton className="mt-3 h-4 w-1/2" />
+            <Skeleton className="mt-6 h-40 w-full rounded-xl" />
+          </Card>
+          <Card className="border-0 p-5 shadow-sm">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="mt-4 h-16 w-full" />
+          </Card>
+        </section>
+      </main>
+    );
+  }
 
   const bill = notification.order?.bill;
   const paystackUrl = notification.paystackUrl ?? bill?.paystackUrl;

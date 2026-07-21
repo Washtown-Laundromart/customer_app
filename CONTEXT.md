@@ -41,6 +41,7 @@ Implemented flow:
 - Customer `/request-wash` includes Shipbubble as the default preferred courier provider and sends `preferredProvider` to the backend. Relay requests require tapping `Use my location` so exact pickup coordinates are sent with the order. For home-delivery requests, the backend immediately attempts pickup dispatch and returns the order with any courier tracking details. Customer `/orders` shows courier delivery jobs with provider, leg, status, external reference, and tracking links returned by providers such as Shipbubble or Relay.
 - Customer `/request-wash` quantity fields are plain text inputs with numeric keyboard hints, so they are easier to edit on mobile; values are converted to positive numbers on submit.
 - App-wide toast notifications live in `components/toast-provider.tsx` and should use plain-language copy for non-technical customers.
+- Customer backend loading states use skeleton blocks from `components/ui/skeleton.tsx` on dashboard, request wash, profile, orders, notifications, notification details, and receipts.
 - API errors are mapped through `toErrorMessage`/`friendlyErrorMessage` in `lib/api.ts`; keep backend/deployment failures understandable for customers.
 - Network failures from the frontend should remain customer-readable; backend proxy settings should be checked in Vercel/Railway logs.
 
