@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bell, LogOut, PackageCheck, ReceiptText, Truck, User, WashingMachine } from "lucide-react";
+import { ArrowRight, Bell, LogOut, PackageCheck, ReceiptText, Truck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -189,8 +189,8 @@ function Header({ onSignOut }: { onSignOut: () => void }) {
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#102532] text-white"><WashingMachine className="h-5 w-5" /></div>
-          <div><p className="text-lg font-bold leading-tight">FreshFold</p><p className="text-xs font-medium text-slate-500">Customer dashboard</p></div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div>
+          <div><p className="text-lg font-bold leading-tight">Washtownnig</p><p className="text-xs font-medium text-slate-500">Customer dashboard</p></div>
         </div>
         <div className="flex items-center gap-2">
           <button aria-label="Notifications" onClick={() => (window.location.href = "/notifications")} className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#102532] hover:bg-slate-50">

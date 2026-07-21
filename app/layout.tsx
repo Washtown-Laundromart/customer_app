@@ -3,7 +3,7 @@ import { ToastProvider } from "@/components/toast-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FreshFold",
+  title: "Washtownnig",
   description: "Laundry pickup, cleaning, and delivery tracking"
 };
 

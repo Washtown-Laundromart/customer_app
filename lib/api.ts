@@ -90,7 +90,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}, token
     return response.json() as Promise<T>;
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error("FreshFold could not reach its server right now. Please try again later.");
+      throw new Error("Washtownnig could not reach its server right now. Please try again later.");
     }
     throw error;
   }
@@ -112,14 +112,14 @@ export function friendlyErrorMessage(message?: string) {
   const normalized = message?.toLowerCase() ?? "";
   if (normalized.includes("invalid credentials")) return "The email or password is not correct. Please check it and try again.";
   if (normalized.includes("unique") || normalized.includes("already")) return "An account with this email already exists. Please log in instead.";
-  if (normalized.includes("could not connect to freshfold at")) return message ?? "We could not connect to FreshFold right now.";
+  if (normalized.includes("could not connect to freshfold at")) return message ?? "We could not connect to Washtownnig right now.";
   if (normalized.includes("failed to fetch") || normalized.includes("network") || normalized.includes("can't reach")) {
-    return "We could not connect to FreshFold right now. Please check your internet connection and try again.";
+    return "We could not connect to Washtownnig right now. Please check your internet connection and try again.";
   }
   if (normalized.includes("cannot get /api/auth/me") || normalized.includes("cannot patch /api/auth/me")) {
     return "Profile saving is not available yet. Please try again after the app update is live.";
   }
-  if (normalized.includes("no live branches")) return "We could not find any open FreshFold branches yet. Please try again later.";
+  if (normalized.includes("no live branches")) return "We could not find any open Washtownnig branches yet. Please try again later.";
   if (normalized.includes("no_same_day_courier_available")) {
     return "Same-day courier pickup is not available for this route right now. Please try again shortly or contact the branch for help.";
   }

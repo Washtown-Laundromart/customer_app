@@ -2,14 +2,14 @@ export const demoNotifications = [
   {
     id: "bill-ready",
     type: "BILL_READY",
-    title: "Your FreshFold bill is ready",
-    excerpt: "FreshFold Surulere inspected your clothes and sent a wash + return delivery bill.",
-    bodyHtml: "<p>Your clothes have been inspected by FreshFold Surulere. Please review the breakdown and pay with Paystack so washing can begin.</p>",
+    title: "Your Washtownnig bill is ready",
+    excerpt: "Washtownnig Surulere inspected your clothes and sent a wash + return delivery bill.",
+    bodyHtml: "<p>Your clothes have been inspected by Washtownnig Surulere. Please review the breakdown and pay with Paystack so washing can begin.</p>",
     createdAt: "2026-06-20T09:24:00.000Z",
     paystackUrl: "https://paystack.com/pay/freshfold-demo",
     order: {
       code: "FF-20871",
-      branch: { name: "FreshFold Surulere" },
+      branch: { name: "Washtownnig Surulere" },
       bill: {
         cleaningSubtotal: 6400,
         deliveryFee: 2500,
@@ -35,7 +35,7 @@ export const demoNotifications = [
     type: "BROADCAST",
     title: "Weekend express cleaning window",
     excerpt: "Surulere branch is accepting express cleaning requests until 3 PM today.",
-    bodyHtml: "<p>FreshFold Surulere is accepting express cleaning requests until <strong>3 PM</strong>. Requests after that time will roll into the next business day.</p>",
+    bodyHtml: "<p>Washtownnig Surulere is accepting express cleaning requests until <strong>3 PM</strong>. Requests after that time will roll into the next business day.</p>",
     createdAt: "2026-06-20T07:15:00.000Z"
   }
 ];

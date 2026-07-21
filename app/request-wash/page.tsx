@@ -100,7 +100,7 @@ export default function RequestWashPage() {
     try {
       if (!token) throw new Error("Please log in again.");
       if (!hasLiveBranches) {
-        throw new Error("We could not find any FreshFold branches yet. Please try again in a few minutes.");
+        throw new Error("We could not find any Washtownnig branches yet. Please try again in a few minutes.");
       }
       if (!selectedBranch) {
         throw new Error("Please select a branch before sending your request.");
