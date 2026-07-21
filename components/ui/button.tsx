@@ -6,7 +6,7 @@ export function Button({ className, asChild = false, ...props }: React.ButtonHTM
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
-      className={cn("inline-flex h-11 items-center justify-center gap-2 rounded-md bg-teal-500 px-4 text-sm font-semibold text-white transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-60", className)}
+      className={cn("inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#0b4ea2] px-4 text-sm font-semibold text-white transition hover:bg-[#073b78] disabled:cursor-not-allowed disabled:opacity-60", className)}
       {...props}
     />
   );

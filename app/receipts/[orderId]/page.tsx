@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, Download, ReceiptText, WashingMachine } from "lucide-react";
+import { ArrowLeft, Check, Download, ReceiptText } from "lucide-react";
 import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,7 +37,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
     const paidAt = bill.paidAt ? new Date(bill.paidAt).toLocaleString() : "Payment pending";
     const lineItems = bill.items ?? [];
 
-    doc.setFillColor(16, 37, 50);
+    doc.setFillColor(11, 78, 162);
     doc.rect(0, 0, 595, 170, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
@@ -51,7 +51,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
     doc.setFontSize(10);
     doc.text("Total payment", 390, 104, { align: "right" });
 
-    doc.setTextColor(16, 37, 50);
+    doc.setTextColor(11, 31, 58);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.text("Receipt details", 48, 215);
@@ -70,7 +70,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 116, 139);
       doc.text(`${item.serviceType} @ ${formatNaira(item.unitPrice)}`, 48, y + 17);
-      doc.setTextColor(16, 37, 50);
+      doc.setTextColor(11, 31, 58);
       doc.setFont("helvetica", "bold");
       doc.text(formatNaira(item.total), 505, y, { align: "right" });
       y += 48;
@@ -88,10 +88,10 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#5e6b7b] px-4 py-6 text-[#102532]">
+    <main className="min-h-screen bg-[#eaf1fb] px-4 py-6 text-[#0b4ea2]">
       <div className="mx-auto max-w-3xl">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <Button className="bg-white px-3 text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/orders")}>
+          <Button className="bg-white px-3 text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/orders")}>
             <ArrowLeft className="h-4 w-4" /> Orders
           </Button>
           <Button disabled={!bill?.paidAt} onClick={downloadPdf}>
@@ -100,7 +100,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
         </div>
 
         {isLoading && (
-          <Card className="overflow-hidden border-0 bg-[#20252c] p-6 text-white shadow-2xl sm:p-8">
+          <Card className="overflow-hidden border-0 bg-[#0b1f3a] p-6 text-white shadow-2xl sm:p-8">
             <Skeleton className="mx-auto h-16 w-16 rounded-full bg-white/20" />
             <Skeleton className="mx-auto mt-6 h-7 w-48 bg-white/20" />
             <Skeleton className="mx-auto mt-3 h-4 w-64 bg-white/10" />
@@ -119,9 +119,9 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
           </Card>
         )}
         {order && bill && (
-          <Card className="overflow-hidden border-0 bg-[#20252c] text-white shadow-2xl">
+          <Card className="overflow-hidden border-0 bg-[#0b1f3a] text-white shadow-2xl">
             <div className="relative p-6 sm:p-8">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#49d39a] text-[#102532] shadow-xl">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#df1f2d] text-white shadow-xl">
                 <Check className="h-8 w-8" />
               </div>
               <div className="mt-6 text-center">
@@ -143,7 +143,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
               </div>
 
               <div className="mt-8 rounded-lg border border-white/10 bg-white/5 p-4">
-                <p className="flex items-center gap-2 font-bold"><ReceiptText className="h-5 w-5 text-[#49d39a]" /> Inspected laundry items</p>
+                <p className="flex items-center gap-2 font-bold"><ReceiptText className="h-5 w-5 text-[#df1f2d]" /> Inspected laundry items</p>
                 <div className="mt-4 space-y-3">
                   {bill.items?.map((item, index) => (
                     <div key={`${item.itemName}-${index}`} className="flex items-center justify-between gap-4 border-b border-white/10 pb-3 text-sm">
@@ -158,7 +158,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
               </div>
 
               <div className="mt-8 flex items-center justify-between text-xs text-slate-400">
-                <span className="flex items-center gap-2"><WashingMachine className="h-4 w-4" /> Washtownnig</span>
+                <span className="flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded bg-white p-0.5"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></span> Washtownnig</span>
                 <span>{order.code}</span>
               </div>
             </div>

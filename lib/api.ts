@@ -1,4 +1,4 @@
-// This customer app should never call Relay, Bolt, Kwik, or Paystack secret APIs directly.
+// This customer app should never call Relay, Shipbubble, or Paystack secret APIs directly.
 export const API_BASE_URL = "/api/freshfold";
 
 export type ApiUser = {
@@ -50,7 +50,7 @@ export type Bill = {
 
 export type DeliveryJob = {
   id: string;
-  provider: "RELAY" | "BOLT" | "KWIK" | "SHIPBUBBLE";
+  provider: "RELAY" | "SHIPBUBBLE";
   leg: "PICKUP_TO_BRANCH" | "BRANCH_TO_CUSTOMER";
   status: string;
   fee: number;

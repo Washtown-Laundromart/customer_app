@@ -74,18 +74,18 @@ export default function CustomerDashboard() {
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
+    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
       <Header onSignOut={signOut} />
       <section className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-5">
-          <Card className="border-0 bg-[#102532] p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
-            <p className="text-sm font-bold uppercase text-cyan-200">Welcome back</p>
+          <Card className="border-0 bg-[#0b4ea2] p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
+            <p className="text-sm font-bold uppercase text-red-100">Welcome back</p>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-5">
               <div>
                 <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Request a wash when your clothes are ready.</h1>
                 <p className="mt-3 max-w-2xl text-slate-300">We use your saved profile details for courier pickup, then the branch inspects and sends a Paystack bill before washing starts.</p>
               </div>
-              <Button className="h-12 w-full bg-white text-[#102532] hover:bg-slate-100 sm:w-auto" onClick={() => (window.location.href = "/request-wash")}>
+              <Button className="h-12 w-full bg-white text-[#0b4ea2] hover:bg-slate-100 sm:w-auto" onClick={() => (window.location.href = "/request-wash")}>
                 Request wash <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -103,7 +103,7 @@ export default function CustomerDashboard() {
                 <h2 className="text-xl font-bold">Current wash order</h2>
                 <p className="text-sm text-slate-500">Payment appears here only after the branch evaluates your clothes.</p>
               </div>
-              <Button className="w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-auto" onClick={() => (window.location.href = "/orders")}>View orders</Button>
+              <Button className="w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-auto" onClick={() => (window.location.href = "/orders")}>View orders</Button>
             </div>
             <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
               {isLoading ? (
@@ -118,7 +118,7 @@ export default function CustomerDashboard() {
               ) : currentOrder ? (
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold text-[#13a7a5]">{currentOrder.code ?? "FF-20871"}</p>
+                    <p className="text-sm font-bold text-[#df1f2d]">{currentOrder.code ?? "FF-20871"}</p>
                     <h3 className="mt-1 text-2xl font-bold">{formatStatus(currentOrder.status)}</h3>
                     <p className="mt-1 text-sm text-slate-500">{currentOrder.pickupAddress}</p>
                   </div>
@@ -154,7 +154,7 @@ export default function CustomerDashboard() {
             ) : (
             <>
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-50 text-[#13a7a5]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 text-[#df1f2d]">
                 <User className="h-6 w-6" />
               </div>
               <div>
@@ -166,17 +166,17 @@ export default function CustomerDashboard() {
               <Info label="Email" value={profile.email} />
               <Info label="Pickup address" value={profile.defaultAddress} />
             </div>
-            <Button className="mt-5 w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/profile")}>Edit profile</Button>
+            <Button className="mt-5 w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/profile")}>Edit profile</Button>
             </>
             )}
           </Card>
 
           <Card className="border-0 p-5 shadow-sm">
-            <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#13a7a5]" /> Notifications</p>
+            <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#df1f2d]" /> Notifications</p>
             <div className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
               Branch bills and Paystack links will appear here and also be sent to your email.
             </div>
-            <Button className="mt-4 w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/notifications")}>View notifications</Button>
+            <Button className="mt-4 w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/notifications")}>View notifications</Button>
           </Card>
         </aside>
       </section>
@@ -193,12 +193,12 @@ function Header({ onSignOut }: { onSignOut: () => void }) {
           <div><p className="text-lg font-bold leading-tight">Washtownnig</p><p className="text-xs font-medium text-slate-500">Customer dashboard</p></div>
         </div>
         <div className="flex items-center gap-2">
-          <button aria-label="Notifications" onClick={() => (window.location.href = "/notifications")} className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#102532] hover:bg-slate-50">
+          <button aria-label="Notifications" onClick={() => (window.location.href = "/notifications")} className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#0b4ea2] hover:bg-slate-50">
             <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#13a7a5]" />
+            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#df1f2d]" />
           </button>
-          <Button className="hidden bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50 sm:inline-flex" onClick={() => (window.location.href = "/profile")}>Profile</Button>
-          <Button className="bg-[#102532] px-3 text-xs hover:bg-[#1b3544] sm:px-4 sm:text-sm" onClick={onSignOut}><LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Sign out</span><span className="sm:hidden">Out</span></Button>
+          <Button className="hidden bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:inline-flex" onClick={() => (window.location.href = "/profile")}>Profile</Button>
+          <Button className="bg-[#0b4ea2] px-3 text-xs hover:bg-[#073b78] sm:px-4 sm:text-sm" onClick={onSignOut}><LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Sign out</span><span className="sm:hidden">Out</span></Button>
         </div>
       </div>
     </header>
@@ -206,7 +206,7 @@ function Header({ onSignOut }: { onSignOut: () => void }) {
 }
 
 function StatusCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return <Card className="border-0 p-5 shadow-sm"><div className="text-[#13a7a5]">{icon}</div><p className="mt-4 text-sm font-semibold text-slate-500">{label}</p><p className="mt-1 font-bold">{value}</p></Card>;
+  return <Card className="border-0 p-5 shadow-sm"><div className="text-[#df1f2d]">{icon}</div><p className="mt-4 text-sm font-semibold text-slate-500">{label}</p><p className="mt-1 font-bold">{value}</p></Card>;
 }
 
 function DashboardSkeleton() {

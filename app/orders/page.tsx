@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Bell, CreditCard, ExternalLink, Mail, PackageCheck, ReceiptText, Truck, WashingMachine } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, ExternalLink, Mail, PackageCheck, ReceiptText, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -84,11 +84,11 @@ export default function OrdersPage() {
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
+    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#102532] text-white"><WashingMachine className="h-5 w-5" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Orders</p><p className="truncate text-xs text-slate-500">Bills, payment and wash status</p></div></div>
-          <Button className="shrink-0 bg-white px-3 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50 sm:px-4 sm:text-sm" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Dashboard</span></Button>
+          <div className="flex min-w-0 items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Orders</p><p className="truncate text-xs text-slate-500">Bills, payment and wash status</p></div></div>
+          <Button className="shrink-0 bg-white px-3 text-xs text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:px-4 sm:text-sm" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Dashboard</span></Button>
         </div>
       </header>
 
@@ -100,11 +100,11 @@ export default function OrdersPage() {
           <>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-[#13a7a5]">{activeOrder.code}</p>
+              <p className="text-sm font-bold text-[#df1f2d]">{activeOrder.code}</p>
               <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Wash order status</h1>
               <p className="mt-2 text-slate-500">Branch staff must inspect stains and garment condition, then send a Paystack bill before washing starts.</p>
             </div>
-            <span className={`rounded-full px-3 py-1 text-sm font-bold ${isPaid ? "bg-emerald-50 text-emerald-700" : billReady ? "bg-cyan-50 text-cyan-700" : "bg-amber-50 text-amber-700"}`}>{isPaid ? "Paid" : billReady ? "Bill ready" : "Awaiting branch bill"}</span>
+            <span className={`rounded-full px-3 py-1 text-sm font-bold ${isPaid ? "bg-blue-50 text-blue-700" : billReady ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>{isPaid ? "Paid" : billReady ? "Bill ready" : "Awaiting branch bill"}</span>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -127,7 +127,7 @@ export default function OrdersPage() {
 
           {!!activeOrder.deliveries?.length && (
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="flex items-center gap-2 text-xl font-bold"><Truck className="h-5 w-5 text-[#13a7a5]" /> Courier tracking</h2>
+              <h2 className="flex items-center gap-2 text-xl font-bold"><Truck className="h-5 w-5 text-[#df1f2d]" /> Courier tracking</h2>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {activeOrder.deliveries.map((delivery) => (
                   <div key={delivery.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
@@ -138,7 +138,7 @@ export default function OrdersPage() {
                     <p className="mt-2 text-slate-500">{formatStatus(delivery.status)}</p>
                     {delivery.externalDeliveryId && <p className="mt-1 text-xs text-slate-500">Tracking ref: {delivery.externalDeliveryId}</p>}
                     {delivery.trackingUrl && (
-                      <Button className="mt-3 h-10 w-full bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => window.open(delivery.trackingUrl ?? "", "_blank", "noopener,noreferrer")}>
+                      <Button className="mt-3 h-10 w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => window.open(delivery.trackingUrl ?? "", "_blank", "noopener,noreferrer")}>
                         Track delivery <ExternalLink className="h-4 w-4" />
                       </Button>
                     )}
@@ -152,7 +152,7 @@ export default function OrdersPage() {
             {billReady ? (
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div><h2 className="flex items-center gap-2 text-xl font-bold"><ReceiptText className="h-5 w-5 text-[#13a7a5]" /> {isPaid ? "Payment receipt" : "Your bill is ready"}</h2><p className="text-sm text-slate-500">Branch-inspected pricing and return delivery fee.</p></div>
+                  <div><h2 className="flex items-center gap-2 text-xl font-bold"><ReceiptText className="h-5 w-5 text-[#df1f2d]" /> {isPaid ? "Payment receipt" : "Your bill is ready"}</h2><p className="text-sm text-slate-500">Branch-inspected pricing and return delivery fee.</p></div>
                   {isPaid ? (
                     <Button className="w-full sm:w-auto" onClick={() => (window.location.href = `/receipts/${activeOrder.id}`)}><ReceiptText className="h-4 w-4" /> View receipt</Button>
                   ) : (
@@ -196,11 +196,11 @@ export default function OrdersPage() {
                 </div>
               ))}
               {!isLoading && paginatedOrders.map((item) => (
-                <button key={item.id} className={`w-full rounded-lg border p-3 text-left text-sm transition ${activeOrder.id === item.id ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white hover:bg-slate-50"}`} onClick={() => setSelectedOrderId(item.id)}>
+                <button key={item.id} className={`w-full rounded-lg border p-3 text-left text-sm transition ${activeOrder.id === item.id ? "border-[#df1f2d] bg-red-50" : "border-slate-200 bg-white hover:bg-slate-50"}`} onClick={() => setSelectedOrderId(item.id)}>
                   <span className="block font-bold">{item.code}</span>
                   <span className="mt-1 block text-xs text-slate-500">{formatStatus(item.status)}</span>
                   {item.createdAt && <span className="mt-1 block text-xs text-slate-500">{formatDateTime(item.createdAt)}</span>}
-                  {item.bill?.paidAt ? <span className="mt-2 inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">Paid</span> : item.bill?.paystackUrl ? <span className="mt-2 inline-block rounded-full bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700">Awaiting payment</span> : null}
+                  {item.bill?.paidAt ? <span className="mt-2 inline-block rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">Paid</span> : item.bill?.paystackUrl ? <span className="mt-2 inline-block rounded-full bg-red-50 px-2 py-1 text-xs font-bold text-red-700">Awaiting payment</span> : null}
                 </button>
               ))}
               {!isLoading && !sortedOrders.length && <p className="text-sm text-slate-500">Your wash requests will appear here.</p>}
@@ -209,18 +209,18 @@ export default function OrdersPage() {
               <div className="mt-4 flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
                 <span>Page {ordersPage} of {ordersPageCount}</span>
                 <div className="flex gap-2">
-                  <Button className="h-8 bg-white px-2 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" disabled={ordersPage <= 1} onClick={() => setOrdersPage((current) => Math.max(1, current - 1))}>Previous</Button>
-                  <Button className="h-8 bg-white px-2 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" disabled={ordersPage >= ordersPageCount} onClick={() => setOrdersPage((current) => Math.min(ordersPageCount, current + 1))}>Next</Button>
+                  <Button className="h-8 bg-white px-2 text-xs text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" disabled={ordersPage <= 1} onClick={() => setOrdersPage((current) => Math.max(1, current - 1))}>Previous</Button>
+                  <Button className="h-8 bg-white px-2 text-xs text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" disabled={ordersPage >= ordersPageCount} onClick={() => setOrdersPage((current) => Math.min(ordersPageCount, current + 1))}>Next</Button>
                 </div>
               </div>
             )}
           </Card>
           <Card className="border-0 p-5 shadow-sm">
-            <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#13a7a5]" /> Site notification</p>
+            <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#df1f2d]" /> Site notification</p>
             <p className="mt-3 text-sm text-slate-500">{billReady ? "Payment link received from branch." : "Waiting for bill from the laundromart."}</p>
           </Card>
           <Card className="border-0 p-5 shadow-sm">
-            <p className="flex items-center gap-2 font-bold"><Mail className="h-5 w-5 text-[#13a7a5]" /> Email notification</p>
+            <p className="flex items-center gap-2 font-bold"><Mail className="h-5 w-5 text-[#df1f2d]" /> Email notification</p>
             <p className="mt-3 text-sm text-slate-500">The same Paystack bill link is sent to the customer email saved on profile.</p>
           </Card>
         </aside>
@@ -230,7 +230,7 @@ export default function OrdersPage() {
 }
 
 function Stage({ label, active, done }: { label: string; active?: boolean; done?: boolean }) {
-  return <div className={`rounded-xl border p-4 ${active ? "border-[#13a7a5] bg-cyan-50" : "border-slate-200 bg-white"}`}><div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${done ? "bg-emerald-500 text-white" : active ? "bg-[#13a7a5] text-white" : "bg-slate-100 text-slate-400"}`}>{done ? "✓" : "•"}</div><p className="font-bold">{label}</p></div>;
+  return <div className={`rounded-xl border p-4 ${active ? "border-[#df1f2d] bg-red-50" : "border-slate-200 bg-white"}`}><div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-full ${done ? "bg-blue-500 text-white" : active ? "bg-[#df1f2d] text-white" : "bg-slate-100 text-slate-400"}`}>{done ? "✓" : "•"}</div><p className="font-bold">{label}</p></div>;
 }
 
 function OrderDetailSkeleton() {

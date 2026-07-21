@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Bell, CreditCard, Mail, WashingMachine } from "lucide-react";
+import { ArrowLeft, Bell, CreditCard, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,11 +30,11 @@ export default function NotificationsPage() {
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
+    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#102532] text-white"><WashingMachine className="h-5 w-5" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Notifications</p><p className="truncate text-xs text-slate-500">Bills, broadcasts and order updates</p></div></div>
-          <Button className="shrink-0 bg-white px-3 text-xs text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50 sm:px-4 sm:text-sm" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Dashboard</span></Button>
+          <div className="flex min-w-0 items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Notifications</p><p className="truncate text-xs text-slate-500">Bills, broadcasts and order updates</p></div></div>
+          <Button className="shrink-0 bg-white px-3 text-xs text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:px-4 sm:text-sm" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Dashboard</span></Button>
         </div>
       </header>
 
@@ -55,10 +55,10 @@ export default function NotificationsPage() {
               </div>
             ))}
             {notifications.map((notification) => (
-              <button key={notification.id} onClick={() => (window.location.href = `/notifications/${notification.id}`)} className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-[#13a7a5] hover:bg-cyan-50">
+              <button key={notification.id} onClick={() => (window.location.href = `/notifications/${notification.id}`)} className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-[#df1f2d] hover:bg-red-50">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-[#13a7a5]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#df1f2d]">
                       {notification.type === "BILL_READY" ? <CreditCard className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
                     </div>
                     <div>
@@ -81,7 +81,7 @@ export default function NotificationsPage() {
 
         <aside className="space-y-5">
           <Card className="border-0 p-5 shadow-sm">
-            <p className="flex items-center gap-2 font-bold"><Mail className="h-5 w-5 text-[#13a7a5]" /> Email copy</p>
+            <p className="flex items-center gap-2 font-bold"><Mail className="h-5 w-5 text-[#df1f2d]" /> Email copy</p>
             <p className="mt-3 text-sm text-slate-500">Branch admins can send matching email notifications. Email provider wiring belongs on the backend.</p>
           </Card>
         </aside>

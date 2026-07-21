@@ -102,8 +102,8 @@ export default function CustomerAuthPage() {
   const isResetMode = mode === "reset";
 
   return (
-    <main className="grid min-h-screen bg-[#f7faf9] text-[#102532] lg:grid-cols-[0.95fr_1.05fr]">
-      <section className="flex flex-col justify-between bg-[#102532] p-6 text-white lg:p-10">
+    <main className="grid min-h-screen bg-[#f4f7fb] text-[#0b4ea2] lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="flex flex-col justify-between bg-[#0b4ea2] p-6 text-white lg:p-10">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white p-1.5">
             <img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" />
@@ -114,16 +114,16 @@ export default function CustomerAuthPage() {
           </div>
         </div>
         <div className="my-16 max-w-xl">
-          <p className="text-sm font-bold uppercase text-cyan-200">Customer access</p>
+          <p className="text-sm font-bold uppercase text-red-100">Customer access</p>
           <h1 className="mt-4 text-5xl font-bold leading-tight">Start a laundry order from the nearest branch.</h1>
           <div className="mt-8 grid gap-3 text-sm text-slate-200">
             {["Account required before booking", "Pay only after itemized inspection", "Track pickup, cleaning and delivery"].map((item) => (
-              <div key={item} className="flex items-center gap-3"><Check className="h-4 w-4 text-emerald-300" /> {item}</div>
+              <div key={item} className="flex items-center gap-3"><Check className="h-4 w-4 text-red-200" /> {item}</div>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-300">
-          <ShieldCheck className="h-4 w-4 text-emerald-300" />
+          <ShieldCheck className="h-4 w-4 text-red-200" />
           Secure customer account
         </div>
       </section>
@@ -149,17 +149,17 @@ export default function CustomerAuthPage() {
             {isResetMode && resetStep === "confirm" && <Field label="New password" type="password" value={form.password} onChange={(value) => setForm({ ...form, password: value })} />}
           </div>
 
-          <Button className="mt-6 h-12 w-full bg-[#102532] hover:bg-[#1b3544]" disabled={isSubmitting} onClick={isResetMode ? resetStep === "request" ? requestResetOtp : resetPassword : submit}>
+          <Button className="mt-6 h-12 w-full bg-[#0b4ea2] hover:bg-[#073b78]" disabled={isSubmitting} onClick={isResetMode ? resetStep === "request" ? requestResetOtp : resetPassword : submit}>
             {isSubmitting ? "Please wait..." : mode === "register" ? "Create account" : isResetMode ? resetStep === "request" ? "Send OTP" : "Reset password" : "Log in"}
             {isResetMode ? resetStep === "request" ? <Mail className="h-4 w-4" /> : <KeyRound className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </Button>
           {mode === "login" && (
-            <button type="button" className="mt-4 w-full text-sm font-bold text-[#0b817f] hover:text-[#102532]" onClick={() => switchMode("reset")}>
+            <button type="button" className="mt-4 w-full text-sm font-bold text-[#b91c1c] hover:text-[#0b4ea2]" onClick={() => switchMode("reset")}>
               Forgot password?
             </button>
           )}
           {isResetMode && (
-            <button type="button" className="mt-4 w-full text-sm font-bold text-[#0b817f] hover:text-[#102532]" onClick={() => switchMode("login")}>
+            <button type="button" className="mt-4 w-full text-sm font-bold text-[#b91c1c] hover:text-[#0b4ea2]" onClick={() => switchMode("login")}>
               Back to login
             </button>
           )}
@@ -176,7 +176,7 @@ function Field({ label, value, type = "text", onChange }: { label: string; value
     <label className="block text-sm font-semibold text-slate-700">
       {label}
       <span className="relative mt-2 block">
-        <input className="h-12 w-full rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm outline-none focus:border-[#13a7a5]" value={value} type={isPassword && showPassword ? "text" : type} onChange={(event) => onChange(event.target.value)} />
+        <input className="h-12 w-full rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm outline-none focus:border-[#df1f2d]" value={value} type={isPassword && showPassword ? "text" : type} onChange={(event) => onChange(event.target.value)} />
         {isPassword && (
           <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100" onClick={() => setShowPassword((current) => !current)}>
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

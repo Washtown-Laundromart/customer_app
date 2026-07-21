@@ -74,13 +74,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7faf9] text-[#102532]">
+    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
       <Header />
       <section className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
-        <Button className="mb-5 bg-white text-[#102532] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> Back</Button>
+        <Button className="mb-5 bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> Back</Button>
         <Card className="border-0 p-4 shadow-xl shadow-slate-200 sm:p-6">
           <h1 className="text-2xl font-bold sm:text-3xl">Profile details</h1>
-          <p className="mt-2 text-slate-500">These details are reused when requesting Relay, Bolt or Kwik pickup through the backend.</p>
+          <p className="mt-2 text-slate-500">These details are reused when requesting Shipbubble or Relay pickup through the backend.</p>
           {isLoading ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-20" />)}
@@ -105,5 +105,5 @@ function Header() {
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label className="block text-sm font-semibold text-slate-700">{label}<input className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#13a7a5]" value={value} onChange={(event) => onChange(event.target.value)} /></label>;
+  return <label className="block text-sm font-semibold text-slate-700">{label}<input className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#df1f2d]" value={value} onChange={(event) => onChange(event.target.value)} /></label>;
 }
