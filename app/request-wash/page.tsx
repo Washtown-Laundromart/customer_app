@@ -9,7 +9,8 @@ import { useToast } from "@/components/toast-provider";
 import { apiFetch, toErrorMessage, type Branch, type Order, type ProfileResponse } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
-const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel"];
+const CUSTOM_ITEM_TYPE = "Custom";
+const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel", CUSTOM_ITEM_TYPE];
 const providers = ["SHIPBUBBLE", "RELAY", "KWIK", "BOLT"] as const;
 
 export default function RequestWashPage() {
@@ -23,7 +24,7 @@ export default function RequestWashPage() {
   const [pickupCoordinates, setPickupCoordinates] = useState<{ latitude: number; longitude: number }>();
   const [provider, setProvider] = useState<(typeof providers)[number]>("SHIPBUBBLE");
   const [note, setNote] = useState("Please inspect for stains before billing.");
-  const [items, setItems] = useState<Array<{ itemType: string; quantity: string }>>([{ itemType: "Shirt", quantity: "5" }]);
+  const [items, setItems] = useState<Array<{ itemType: string; customItemType?: string; quantity: string }>>([{ itemType: "Shirt", quantity: "5" }]);
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -58,7 +59,7 @@ export default function RequestWashPage() {
   const selectedBranch = useMemo(() => branch ?? branches[0], [branch, branches]);
   const totalClothes = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
-  function updateItem(index: number, patch: Partial<{ itemType: string; quantity: string }>) {
+  function updateItem(index: number, patch: Partial<{ itemType: string; customItemType?: string; quantity: string }>) {
     setItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
   }
 
@@ -107,6 +108,13 @@ export default function RequestWashPage() {
       if (provider === "RELAY" && !pickupCoordinates) {
         throw new Error("Tap Use my location before submitting a Relay pickup so the courier receives exact coordinates.");
       }
+      const requestedItems = items.map((item) => ({
+        itemType: item.itemType === CUSTOM_ITEM_TYPE ? item.customItemType?.trim() ?? "" : item.itemType,
+        quantity: Math.max(1, Number(item.quantity || 1))
+      }));
+      if (requestedItems.some((item) => !item.itemType)) {
+        throw new Error("Enter the custom clothing name before submitting your wash request.");
+      }
       const created = await apiFetch<Order>("/api/orders", {
         method: "POST",
         body: JSON.stringify({
@@ -116,7 +124,7 @@ export default function RequestWashPage() {
           pickupLongitude: pickupCoordinates?.longitude,
           customerNote: `${note}\nPreferred provider: ${provider}`,
           preferredProvider: provider,
-          requestedItems: items.map((item) => ({ itemType: item.itemType, quantity: Math.max(1, Number(item.quantity || 1)) })),
+          requestedItems,
           fulfillmentMethod: "HOME_DELIVERY"
         })
       }, token);
@@ -185,8 +193,11 @@ export default function RequestWashPage() {
             </div>
             <div className="mt-5 space-y-3">
               {items.map((item, index) => (
-                <div key={`${item.itemType}-${index}`} className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_140px_auto]">
-                  <select className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm" value={item.itemType} onChange={(event) => updateItem(index, { itemType: event.target.value })}>{clothingTypes.map((type) => <option key={type}>{type}</option>)}</select>
+                <div key={`${item.itemType}-${index}`} className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_140px_auto]">
+                  <select className={`h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm ${item.itemType === CUSTOM_ITEM_TYPE ? "" : "sm:col-span-2"}`} value={item.itemType} onChange={(event) => updateItem(index, { itemType: event.target.value, customItemType: "" })}>{clothingTypes.map((type) => <option key={type}>{type}</option>)}</select>
+                  {item.itemType === CUSTOM_ITEM_TYPE && (
+                    <input className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#13a7a5]" placeholder="Type clothing item" value={item.customItemType ?? ""} onChange={(event) => updateItem(index, { customItemType: event.target.value })} />
+                  )}
                   <input className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm" inputMode="numeric" pattern="[0-9]*" type="text" value={item.quantity} onChange={(event) => {
                     const digits = event.target.value.replace(/\D/g, "");
                     updateItem(index, { quantity: digits });
