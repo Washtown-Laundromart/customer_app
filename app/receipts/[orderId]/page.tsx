@@ -88,7 +88,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ orderId: str
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#eaf1fb] px-4 py-6 text-[#0b4ea2]">
+    <main className="min-h-screen bg-[#eaf1fb] px-4 py-6 text-slate-950">
       <div className="mx-auto max-w-3xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <Button className="bg-white px-3 text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/orders")}>

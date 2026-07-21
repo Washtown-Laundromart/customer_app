@@ -74,7 +74,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
+    <main className="min-h-screen bg-[#f4f7fb] text-slate-950">
       <Header />
       <section className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
         <Button className="mb-5 bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => (window.location.href = "/")}><ArrowLeft className="h-4 w-4" /> Back</Button>
@@ -101,7 +101,7 @@ export default function ProfilePage() {
 }
 
 function Header() {
-  return <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6"><div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div><p className="text-lg font-bold">Washtownnig</p><p className="text-xs text-slate-500">Customer profile</p></div></div></header>;
+  return <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6"><div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div><p className="text-lg font-bold text-[#0b4ea2]">Washtownnig</p><p className="text-xs text-slate-500">Customer profile</p></div></div></header>;
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {

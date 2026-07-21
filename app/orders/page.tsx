@@ -84,7 +84,7 @@ export default function OrdersPage() {
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
+    <main className="min-h-screen bg-[#f4f7fb] text-slate-950">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Orders</p><p className="truncate text-xs text-slate-500">Bills, payment and wash status</p></div></div>

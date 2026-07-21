@@ -74,7 +74,7 @@ export default function CustomerDashboard() {
   if (!token) return null;
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
+    <main className="min-h-screen bg-[#f4f7fb] text-slate-950">
       <Header onSignOut={signOut} />
       <section className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-5">
@@ -190,7 +190,7 @@ function Header({ onSignOut }: { onSignOut: () => void }) {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div>
-          <div><p className="text-lg font-bold leading-tight">Washtownnig</p><p className="text-xs font-medium text-slate-500">Customer dashboard</p></div>
+          <div><p className="text-lg font-bold leading-tight text-[#0b4ea2]">Washtownnig</p><p className="text-xs font-medium text-slate-500">Customer dashboard</p></div>
         </div>
         <div className="flex items-center gap-2">
           <button aria-label="Notifications" onClick={() => (window.location.href = "/notifications")} className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#0b4ea2] hover:bg-slate-50">

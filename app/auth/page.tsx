@@ -102,7 +102,7 @@ export default function CustomerAuthPage() {
   const isResetMode = mode === "reset";
 
   return (
-    <main className="grid min-h-screen bg-[#f4f7fb] text-[#0b4ea2] lg:grid-cols-[0.95fr_1.05fr]">
+    <main className="grid min-h-screen bg-[#f4f7fb] text-slate-950 lg:grid-cols-[0.95fr_1.05fr]">
       <section className="flex flex-col justify-between bg-[#0b4ea2] p-6 text-white lg:p-10">
         <div className="flex items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white p-1.5">

@@ -31,7 +31,7 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
   if (!token) return null;
   if (notFound) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f4f7fb] px-4 text-[#0b4ea2]">
+      <main className="flex min-h-screen items-center justify-center bg-[#f4f7fb] px-4 text-slate-950">
         <Card className="max-w-md border-0 p-6 text-center shadow-xl shadow-slate-200">
           <h1 className="text-2xl font-bold">Notification not found</h1>
           <p className="mt-2 text-sm text-slate-500">This notification is not available for your account.</p>
@@ -42,7 +42,7 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
   }
   if (!notification) {
     return (
-      <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
+      <main className="min-h-screen bg-[#f4f7fb] text-slate-950">
         <header className="border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
             <div className="flex min-w-0 items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Notification details</p><p className="truncate text-xs text-slate-500">Review message and payment action</p></div></div>
@@ -91,7 +91,7 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] text-[#0b4ea2]">
+    <main className="min-h-screen bg-[#f4f7fb] text-slate-950">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200"><img src="/washtownlogo.png" alt="Washtownnig" className="max-h-full max-w-full object-contain" /></div><div className="min-w-0"><p className="truncate text-lg font-bold">Notification details</p><p className="truncate text-xs text-slate-500">Review message and payment action</p></div></div>
