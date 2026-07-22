@@ -19,7 +19,8 @@ export default function OrdersPage() {
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
     if (!savedToken) {
-      window.location.href = "/auth";
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      window.location.href = `/auth?returnTo=${encodeURIComponent(returnTo)}`;
       return;
     }
     setToken(savedToken);
@@ -36,7 +37,7 @@ export default function OrdersPage() {
       }, savedToken).then((result) => {
         window.history.replaceState({}, "", "/orders");
         setSelectedOrderId(result.order.id);
-        showToast({ type: "success", title: "Payment confirmed", message: "Your payment has been verified and your order is now in cleaning." });
+        showToast({ type: "success", title: "Payment confirmed", message: "Your payment has been verified and your order has been updated." });
         return loadOrders();
       })
       : loadOrders();
@@ -140,6 +141,11 @@ export default function OrdersPage() {
                     {delivery.trackingUrl && (
                       <Button className="mt-3 h-10 w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => window.open(delivery.trackingUrl ?? "", "_blank", "noopener,noreferrer")}>
                         Track delivery <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {delivery.status === "return_payment_pending" && delivery.paystackUrl && (
+                      <Button className="mt-3 h-10 w-full" onClick={() => (window.location.href = delivery.paystackUrl ?? "")}>
+                        <CreditCard className="h-4 w-4" /> Pay delivery fee
                       </Button>
                     )}
                   </div>

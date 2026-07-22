@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff, KeyRound, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,18 @@ export default function CustomerAuthPage() {
     password: "",
     otp: ""
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("returnTo")) setMode("login");
+  }, []);
+
+  function returnDestination() {
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get("returnTo");
+    if (!returnTo?.startsWith("/") || returnTo.startsWith("//")) return "/";
+    return returnTo;
+  }
 
   async function submit() {
     setIsSubmitting(true);
@@ -43,7 +55,7 @@ export default function CustomerAuthPage() {
         title: mode === "register" ? "Account created" : "You are signed in",
         message: mode === "register" ? "Welcome to Washtownnig. You can now request a wash." : "Welcome back. Your dashboard is opening now."
       });
-      window.location.href = "/";
+      window.location.href = returnDestination();
     } catch (error) {
       showToast({
         type: "error",
