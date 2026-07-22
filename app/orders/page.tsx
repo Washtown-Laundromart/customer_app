@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
-import { apiFetch, type Order, type RequestedItem } from "@/lib/api";
+import { apiFetch, toErrorMessage, type Order, type RequestedItem } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function OrdersPage() {
@@ -15,6 +15,7 @@ export default function OrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string>();
   const [ordersPage, setOrdersPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryingDeliveryId, setRetryingDeliveryId] = useState<string>();
 
   useEffect(() => {
     const savedToken = window.localStorage.getItem("freshfold_customer_token");
@@ -82,6 +83,23 @@ export default function OrdersPage() {
     setOrdersPage((current) => Math.min(current, ordersPageCount));
   }, [ordersPageCount]);
 
+  async function retryPickupDispatch(deliveryId: string, provider: string) {
+    if (!token) return;
+    setRetryingDeliveryId(deliveryId);
+    try {
+      const result = await apiFetch<{ order: Order }>(`/api/orders/${activeOrder.id}/pickup/retry`, {
+        method: "POST",
+        body: JSON.stringify({ provider })
+      }, token);
+      setOrders(orders.map((item) => item.id === result.order.id ? result.order : item));
+      showToast({ type: "success", title: "Pickup dispatch retried", message: `${result.order.code} has been updated.` });
+    } catch (error) {
+      showToast({ type: "error", title: "Dispatch still failed", message: toErrorMessage(error) });
+    } finally {
+      setRetryingDeliveryId(undefined);
+    }
+  }
+
   if (!token) return null;
 
   return (
@@ -146,6 +164,11 @@ export default function OrdersPage() {
                     {delivery.status === "return_payment_pending" && delivery.paystackUrl && (
                       <Button className="mt-3 h-10 w-full" onClick={() => (window.location.href = delivery.paystackUrl ?? "")}>
                         <CreditCard className="h-4 w-4" /> Pay delivery fee
+                      </Button>
+                    )}
+                    {delivery.leg === "PICKUP_TO_BRANCH" && ["dispatch_failed", "duplicate_active_pickup"].includes(delivery.status) && (
+                      <Button className="mt-3 h-10 w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" disabled={retryingDeliveryId === delivery.id} onClick={() => retryPickupDispatch(delivery.id, delivery.provider)}>
+                        <Truck className="h-4 w-4" /> {retryingDeliveryId === delivery.id ? "Retrying..." : "Retry pickup dispatch"}
                       </Button>
                     )}
                   </div>
