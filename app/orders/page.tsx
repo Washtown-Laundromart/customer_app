@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Bell, CreditCard, ExternalLink, Mail, PackageCheck, ReceiptText, Truck } from "lucide-react";
+import { ArrowLeft, CreditCard, ExternalLink, PackageCheck, ReceiptText, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -220,14 +220,6 @@ export default function OrdersPage() {
                 </div>
               </div>
             )}
-          </Card>
-          <Card className="border-0 p-5 shadow-sm">
-            <p className="flex items-center gap-2 font-bold"><Bell className="h-5 w-5 text-[#df1f2d]" /> Site notification</p>
-            <p className="mt-3 text-sm text-slate-500">{billReady ? "Payment link received from branch." : "Waiting for bill from the laundromart."}</p>
-          </Card>
-          <Card className="border-0 p-5 shadow-sm">
-            <p className="flex items-center gap-2 font-bold"><Mail className="h-5 w-5 text-[#df1f2d]" /> Email notification</p>
-            <p className="mt-3 text-sm text-slate-500">The same Paystack bill link is sent to the customer email saved on profile.</p>
           </Card>
         </aside>
       </section>

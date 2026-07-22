@@ -130,7 +130,7 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
         <aside className="space-y-5">
           <Card className="border-0 p-5 shadow-sm">
             <p className="font-bold">Action</p>
-            <p className="mt-2 text-sm text-slate-500">{isPaid ? "Payment is complete. You can download your receipt." : paystackUrl ? "Pay with Paystack so washing can begin." : "No payment action is attached to this notification."}</p>
+            <p className="mt-2 text-sm text-slate-500">{isPaid ? "Payment is complete. You can download your receipt." : paystackUrl ? "Use the Paystack link attached to this notification to continue your order." : "No payment action is attached to this notification."}</p>
             {isPaid && <Button className="mt-5 h-12 w-full" onClick={downloadReceipt}><Download className="h-4 w-4" /> Download receipt</Button>}
             {!isPaid && paystackUrl && <Button className="mt-5 h-12 w-full" onClick={() => (window.location.href = paystackUrl)}><CreditCard className="h-4 w-4" /> Pay now</Button>}
           </Card>
