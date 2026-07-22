@@ -156,6 +156,17 @@ export default function OrdersPage() {
                     </div>
                     <p className="mt-2 text-slate-500">{formatStatus(delivery.status)}</p>
                     {delivery.externalDeliveryId && <p className="mt-1 text-xs text-slate-500">Tracking ref: {delivery.externalDeliveryId}</p>}
+                    <div className="mt-3 rounded-md bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
+                      <p className="font-bold text-slate-900">Rider details</p>
+                      {delivery.courierName || delivery.courierPhone ? (
+                        <>
+                          {delivery.courierName && <p className="mt-1">{delivery.courierName}</p>}
+                          {delivery.courierPhone && <a className="mt-1 block font-bold text-[#0b4ea2]" href={`tel:${delivery.courierPhone}`}>{delivery.courierPhone}</a>}
+                        </>
+                      ) : (
+                        <p className="mt-1">Rider details pending</p>
+                      )}
+                    </div>
                     {delivery.trackingUrl && (
                       <Button className="mt-3 h-10 w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" onClick={() => window.open(delivery.trackingUrl ?? "", "_blank", "noopener,noreferrer")}>
                         Track delivery <ExternalLink className="h-4 w-4" />
