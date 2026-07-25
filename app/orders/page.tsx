@@ -155,7 +155,7 @@ export default function OrdersPage() {
                       <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-slate-500">{formatDeliveryLeg(delivery.leg)}</span>
                     </div>
                     <p className="mt-2 text-slate-500">{formatStatus(delivery.status)}</p>
-                    <p className="mt-1 text-sm font-bold text-slate-900">{delivery.leg === "PICKUP_TO_BRANCH" ? "Pickup delivery fee" : "Return delivery fee"}: {formatNaira(delivery.fee)}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">{delivery.leg === "PICKUP_TO_BRANCH" ? "Estimated pickup fee" : "Return delivery fee"}: {formatNaira(delivery.fee)}</p>
                     {delivery.externalDeliveryId && <p className="mt-1 text-xs text-slate-500">Tracking ref: {delivery.externalDeliveryId}</p>}
                     <div className="mt-3 rounded-md bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
                       <p className="font-bold text-slate-900">Rider details</p>
