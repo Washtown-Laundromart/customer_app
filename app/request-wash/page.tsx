@@ -129,10 +129,13 @@ export default function RequestWashPage() {
         })
       }, token);
       setOrder(created);
+      const pickupDelivery = created.deliveries?.find((delivery) => delivery.leg === "PICKUP_TO_BRANCH" && delivery.fee > 0);
       showToast({
         type: "success",
         title: "Wash request sent",
-        message: created.status === "PICKUP_COURIER_ASSIGNED" ? `Your order ${created.code} has been sent and pickup tracking is ready.` : `Your order ${created.code} has been sent to the branch for pickup review.`
+        message: created.status === "PICKUP_COURIER_ASSIGNED"
+          ? `Your order ${created.code} has been sent. Pickup delivery fee: ${pickupDelivery ? formatNaira(pickupDelivery.fee) : "pending"}.`
+          : `Your order ${created.code} has been sent to the branch for pickup review.`
       });
       window.location.href = "/orders";
     } catch (error) {
@@ -237,4 +240,8 @@ function Field({ label, value, readOnly, onChange }: { label: string; value: str
 
 function Summary({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between gap-3 border-b border-white/10 pb-3"><span className="text-slate-300">{label}</span><strong className="text-right">{value}</strong></div>;
+}
+
+function formatNaira(value: number) {
+  return `NGN ${Number(value).toLocaleString()}`;
 }
