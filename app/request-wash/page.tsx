@@ -11,7 +11,7 @@ import { useCustomerStore } from "@/lib/store";
 
 const CUSTOM_ITEM_TYPE = "Custom";
 const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel", CUSTOM_ITEM_TYPE];
-const providers = ["SHIPBUBBLE", "RELAY"] as const;
+const providers = ["SHIPBUBBLE", "RELAY", "BOLT"] as const;
 
 export default function RequestWashPage() {
   const { token, setToken, profile, setProfile, branch, setBranch, setOrder } = useCustomerStore();
@@ -105,8 +105,8 @@ export default function RequestWashPage() {
       if (!selectedBranch) {
         throw new Error("Please select a branch before sending your request.");
       }
-      if (provider === "RELAY" && !pickupCoordinates) {
-        throw new Error("Tap Use my location before submitting a Relay pickup so the courier receives exact coordinates.");
+      if ((provider === "RELAY" || provider === "BOLT") && !pickupCoordinates) {
+        throw new Error(`Tap Use my location before submitting a ${provider} pickup so the courier receives exact coordinates.`);
       }
       const requestedItems = items.map((item) => ({
         itemType: item.itemType === CUSTOM_ITEM_TYPE ? item.customItemType?.trim() ?? "" : item.itemType,
