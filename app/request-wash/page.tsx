@@ -12,6 +12,10 @@ import { useCustomerStore } from "@/lib/store";
 const CUSTOM_ITEM_TYPE = "Custom";
 const clothingTypes = ["Shirt", "Suit", "Senator wear", "Bedsheet", "Duvet", "Trouser", "Agbada", "Dress", "Skirt", "Towel", CUSTOM_ITEM_TYPE];
 const providers = ["SHIPBUBBLE", "RELAY", "BOLT"] as const;
+const boltVehicleTypes = [
+  { value: "standard", label: "Car (Standard)" },
+  { value: "motorbike", label: "Bike (Motorbike)" }
+] as const;
 
 export default function RequestWashPage() {
   const { token, setToken, profile, setProfile, branch, setBranch, setOrder } = useCustomerStore();
@@ -23,6 +27,7 @@ export default function RequestWashPage() {
   const [pickupAddress, setPickupAddress] = useState(profile.defaultAddress);
   const [pickupCoordinates, setPickupCoordinates] = useState<{ latitude: number; longitude: number }>();
   const [provider, setProvider] = useState<(typeof providers)[number]>("SHIPBUBBLE");
+  const [boltVehicleCategory, setBoltVehicleCategory] = useState<"standard" | "motorbike">("standard");
   const [note, setNote] = useState("Please inspect for stains before billing.");
   const [items, setItems] = useState<Array<{ itemType: string; customItemType?: string; quantity: string }>>([{ itemType: "Shirt", quantity: "5" }]);
 
@@ -124,6 +129,7 @@ export default function RequestWashPage() {
           pickupLongitude: pickupCoordinates?.longitude,
           customerNote: `${note}\nPreferred provider: ${provider}`,
           preferredProvider: provider,
+          ...(provider === "BOLT" ? { boltVehicleCategory } : {}),
           requestedItems,
           fulfillmentMethod: "HOME_DELIVERY"
         })
@@ -186,6 +192,23 @@ export default function RequestWashPage() {
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">Nearest branch<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={selectedBranch?.id ?? ""} onChange={(event) => setBranch(branches.find((item) => item.id === event.target.value) ?? branches[0])} disabled={!branches.length}>{branches.length ? branches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>) : <option value="">No live branches found</option>}</select></label>
               <label className="text-sm font-semibold text-slate-700">Preferred courier provider<select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={provider} onChange={(event) => setProvider(event.target.value as typeof provider)}>{providers.map((item) => <option key={item}>{item}</option>)}</select></label>
+              {provider === "BOLT" && (
+                <label className="text-sm font-semibold text-slate-700 md:col-span-2">
+                  Bolt vehicle type
+                  <div className="mt-2 flex gap-3">
+                    {boltVehicleTypes.map((type) => (
+                      <button
+                        key={type.value}
+                        type="button"
+                        onClick={() => setBoltVehicleCategory(type.value)}
+                        className={`flex-1 rounded-lg border px-4 py-3 text-sm font-semibold transition ${boltVehicleCategory === type.value ? "border-[#0b4ea2] bg-[#0b4ea2] text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </label>
+              )}
             </div>
           </Card>
 
@@ -221,6 +244,7 @@ export default function RequestWashPage() {
               <Summary label="Customer" value={profile.fullName} />
               <Summary label="Phone" value={profile.phone} />
               <Summary label="Provider" value={provider} />
+              {provider === "BOLT" && <Summary label="Vehicle" value={boltVehicleCategory === "motorbike" ? "Bike" : "Car"} />}
               <Summary label="Clothes count" value={`${totalClothes} items`} />
               <Summary label="Billing" value="After inspection" />
             </div>
