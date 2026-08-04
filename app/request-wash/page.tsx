@@ -28,6 +28,8 @@ export default function RequestWashPage() {
   const [pickupCoordinates, setPickupCoordinates] = useState<{ latitude: number; longitude: number }>();
   const [provider, setProvider] = useState<(typeof providers)[number]>("SHIPBUBBLE");
   const [boltVehicleCategory, setBoltVehicleCategory] = useState<"standard" | "motorbike">("standard");
+  const [openMode, setOpenMode] = useState(false);
+  const [loadDescription, setLoadDescription] = useState("");
   const [note, setNote] = useState("Please inspect for stains before billing.");
   const [items, setItems] = useState<Array<{ itemType: string; customItemType?: string; quantity: string }>>([{ itemType: "Shirt", quantity: "5" }]);
 
@@ -113,12 +115,17 @@ export default function RequestWashPage() {
       if ((provider === "RELAY" || provider === "BOLT") && !pickupCoordinates) {
         throw new Error(`Tap Use my location before submitting a ${provider} pickup so the courier receives exact coordinates.`);
       }
-      const requestedItems = items.map((item) => ({
-        itemType: item.itemType === CUSTOM_ITEM_TYPE ? item.customItemType?.trim() ?? "" : item.itemType,
-        quantity: Math.max(1, Number(item.quantity || 1))
-      }));
-      if (requestedItems.some((item) => !item.itemType)) {
-        throw new Error("Enter the custom clothing name before submitting your wash request.");
+      let requestedItems: { itemType: string; quantity: number }[] = [];
+      if (openMode) {
+        if (!loadDescription.trim()) throw new Error("Describe what you are sending before submitting.");
+      } else {
+        requestedItems = items.map((item) => ({
+          itemType: item.itemType === CUSTOM_ITEM_TYPE ? item.customItemType?.trim() ?? "" : item.itemType,
+          quantity: Math.max(1, Number(item.quantity || 1))
+        }));
+        if (requestedItems.some((item) => !item.itemType)) {
+          throw new Error("Enter the custom clothing name before submitting your wash request.");
+        }
       }
       const created = await apiFetch<Order>("/api/orders", {
         method: "POST",
@@ -130,6 +137,7 @@ export default function RequestWashPage() {
           customerNote: `${note}\nPreferred provider: ${provider}`,
           preferredProvider: provider,
           ...(provider === "BOLT" ? { boltVehicleCategory } : {}),
+          ...(openMode ? { loadDescription: loadDescription.trim() } : {}),
           requestedItems,
           fulfillmentMethod: "HOME_DELIVERY"
         })
@@ -216,25 +224,66 @@ export default function RequestWashPage() {
           </Card>
 
           <Card className="border-0 p-4 shadow-sm sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div><h2 className="text-2xl font-bold">Clothes you are sending</h2><p className="text-sm text-slate-500">This is only a customer estimate. Branch staff still bills after inspection.</p></div>
-              <Button className="w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-auto" onClick={() => setItems([...items, { itemType: "Shirt", quantity: "1" }])}><Plus className="h-4 w-4" /> Add item</Button>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Clothes you are sending</h2>
+                <p className="text-sm text-slate-500">Branch staff bills after inspection regardless of what you enter here.</p>
+              </div>
+              {!openMode && (
+                <Button className="w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-auto" onClick={() => setItems([...items, { itemType: "Shirt", quantity: "1" }])}><Plus className="h-4 w-4" /> Add item</Button>
+              )}
             </div>
-            <div className="mt-5 space-y-3">
-              {items.map((item, index) => (
-                <div key={`${item.itemType}-${index}`} className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_140px_auto]">
-                  <select className={`h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm ${item.itemType === CUSTOM_ITEM_TYPE ? "" : "sm:col-span-2"}`} value={item.itemType} onChange={(event) => updateItem(index, { itemType: event.target.value, customItemType: "" })}>{clothingTypes.map((type) => <option key={type}>{type}</option>)}</select>
-                  {item.itemType === CUSTOM_ITEM_TYPE && (
-                    <input className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#df1f2d]" placeholder="Type clothing item" value={item.customItemType ?? ""} onChange={(event) => updateItem(index, { customItemType: event.target.value })} />
-                  )}
-                  <input className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm" inputMode="numeric" pattern="[0-9]*" type="text" value={item.quantity} onChange={(event) => {
-                    const digits = event.target.value.replace(/\D/g, "");
-                    updateItem(index, { quantity: digits });
-                  }} />
-                  <Button className="w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-12" onClick={() => removeItem(index)}><Minus className="h-4 w-4" /></Button>
+
+            <div className="mt-4 flex gap-2 rounded-xl bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setOpenMode(false)}
+                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition ${!openMode ? "bg-white shadow text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Count each item
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenMode(true)}
+                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition ${openMode ? "bg-white shadow text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                Let staff sort it out
+              </button>
+            </div>
+
+            {openMode ? (
+              <div className="mt-4 space-y-4">
+                <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                  Branch staff will open your bag, count and record every item, and send you a detailed bill after inspection.
                 </div>
-              ))}
-            </div>
+                <label className="block text-sm font-semibold text-slate-700">
+                  What are you sending?
+                  <textarea
+                    className="mt-2 min-h-28 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-[#0b4ea2]"
+                    placeholder="e.g. 2 loads of mixed clothes, 1 duvet, some shirts and trousers..."
+                    value={loadDescription}
+                    onChange={(event) => setLoadDescription(event.target.value)}
+                  />
+                </label>
+              </div>
+            ) : (
+              <div className="mt-5 space-y-3">
+                {items.map((item, index) => (
+                  <div key={`${item.itemType}-${index}`} className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_140px_auto]">
+                    <select className={`h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm ${item.itemType === CUSTOM_ITEM_TYPE ? "" : "sm:col-span-2"}`} value={item.itemType} onChange={(event) => updateItem(index, { itemType: event.target.value, customItemType: "" })}>{clothingTypes.map((type) => <option key={type}>{type}</option>)}</select>
+                    {item.itemType === CUSTOM_ITEM_TYPE && (
+                      <input className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#df1f2d]" placeholder="Type clothing item" value={item.customItemType ?? ""} onChange={(event) => updateItem(index, { customItemType: event.target.value })} />
+                    )}
+                    <input className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm" inputMode="numeric" pattern="[0-9]*" type="text" value={item.quantity} onChange={(event) => {
+                      const digits = event.target.value.replace(/\D/g, "");
+                      updateItem(index, { quantity: digits });
+                    }} />
+                    <Button className="w-full bg-white text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50 sm:w-12" onClick={() => removeItem(index)}><Minus className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <label className="mt-5 block text-sm font-semibold text-slate-700">Notes for branch staff<textarea className="mt-2 min-h-28 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-[#df1f2d]" value={note} onChange={(event) => setNote(event.target.value)} /></label>
           </Card>
         </div>
@@ -248,10 +297,13 @@ export default function RequestWashPage() {
               <Summary label="Phone" value={profile.phone} />
               <Summary label="Provider" value={provider} />
               {provider === "BOLT" && <Summary label="Vehicle" value={boltVehicleCategory === "motorbike" ? "Bike" : "Car"} />}
-              <Summary label="Clothes count" value={`${totalClothes} items`} />
+              {openMode
+                ? <Summary label="Items" value="Staff will count on arrival" />
+                : <Summary label="Clothes count" value={`${totalClothes} items`} />
+              }
               <Summary label="Billing" value="After inspection" />
             </div>
-            <Button className="mt-6 h-12 w-full bg-white text-[#0b4ea2] hover:bg-slate-100" disabled={isLoading || isSubmitting || !items.length} onClick={submitRequest}>
+            <Button className="mt-6 h-12 w-full bg-white text-[#0b4ea2] hover:bg-slate-100" disabled={isLoading || isSubmitting || (!openMode && !items.length)} onClick={submitRequest}>
               {isSubmitting ? "Submitting..." : "Submit wash request"} <Send className="h-4 w-4" />
             </Button>
           </Card>
