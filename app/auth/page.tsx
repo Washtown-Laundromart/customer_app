@@ -108,6 +108,7 @@ export default function CustomerAuthPage() {
 
   function switchMode(nextMode: "register" | "login" | "reset") {
     setMode(nextMode);
+    setForm({ fullName: "", email: "", phone: "", password: "", otp: "" });
     if (nextMode !== "reset") setResetStep("request");
   }
 

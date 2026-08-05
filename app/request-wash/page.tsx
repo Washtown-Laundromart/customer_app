@@ -85,13 +85,21 @@ export default function RequestWashPage() {
       return;
     }
     setIsLocating(true);
-    navigator.geolocation.getCurrentPosition((position) => {
-      setPickupCoordinates({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-      });
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { latitude, longitude } = position.coords;
+      setPickupCoordinates({ latitude, longitude });
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=address,poi,neighborhood,place&limit=1&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? ""}`
+        );
+        const data = await res.json() as { features?: Array<{ place_name?: string }> };
+        const placeName = data.features?.[0]?.place_name;
+        if (placeName) updatePickupAddress(placeName);
+      } catch {
+        // Reverse geocode failed — coordinates still saved, address unchanged
+      }
       setIsLocating(false);
-      showToast({ type: "success", title: "Location saved", message: "We will send these pickup coordinates with your wash request." });
+      showToast({ type: "success", title: "Location saved", message: "Your current location has been set as the pickup address." });
     }, () => {
       setIsLocating(false);
       showToast({ type: "error", title: "Location not shared", message: "Allow location access or use another courier provider while testing." });
@@ -192,7 +200,7 @@ export default function RequestWashPage() {
                   <Button className="h-9 bg-white px-3 text-xs text-[#0b4ea2] ring-1 ring-slate-200 hover:bg-slate-50" type="button" disabled={isLocating} onClick={useCurrentLocation}>
                     <LocateFixed className="h-3.5 w-3.5" /> {isLocating ? "Getting location..." : "Use my location"}
                   </Button>
-                  {pickupCoordinates && <span className="text-xs font-semibold text-[#b91c1c]">Coordinates saved</span>}
+                  {pickupCoordinates && <span className="text-xs font-semibold text-emerald-600">Location set</span>}
                 </div>
               </div>
             </div>
