@@ -15,7 +15,8 @@ export default function CustomerAuthPage() {
   const [resetStep, setResetStep] = useState<"request" | "confirm">("request");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     password: "",
@@ -38,7 +39,15 @@ export default function CustomerAuthPage() {
     setIsSubmitting(true);
     try {
       const path = mode === "register" ? "/api/auth/register" : "/api/auth/login";
-      const body = mode === "register" ? form : { email: form.email, password: form.password };
+      if (mode === "register") {
+        const firstName = form.firstName.trim().replace(/\s+/g, " ");
+        const lastName = form.lastName.trim().replace(/\s+/g, " ");
+        if (!firstName || !lastName) throw new Error("Please enter both your first and last name (e.g. John Doe). Courier companies reject one-word names.");
+        if (/\d/.test(`${firstName}${lastName}`)) throw new Error("Your name cannot contain numbers or symbols.");
+      }
+      const body = mode === "register"
+        ? { ...form, fullName: `${form.firstName.trim().replace(/\s+/g, " ")} ${form.lastName.trim().replace(/\s+/g, " ")}`.trim() }
+        : { email: form.email, password: form.password };
       const result = await apiFetch<AuthResponse>(path, { method: "POST", body: JSON.stringify(body) });
       window.localStorage.setItem("freshfold_customer_token", result.token);
       const profile = {
@@ -108,7 +117,7 @@ export default function CustomerAuthPage() {
 
   function switchMode(nextMode: "register" | "login" | "reset") {
     setMode(nextMode);
-    setForm({ fullName: "", email: "", phone: "", password: "", otp: "" });
+    setForm({ firstName: "", lastName: "", email: "", phone: "", password: "", otp: "" });
     if (nextMode !== "reset") setResetStep("request");
   }
 
@@ -167,7 +176,8 @@ export default function CustomerAuthPage() {
           <p className="mt-1 text-sm text-slate-500">{isResetMode ? "Use the OTP sent to your email to set a new password." : "Auth stays here. The main app starts after this screen."}</p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {mode === "register" && <Field label="Full name" value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} />}
+            {mode === "register" && <Field label="First name" value={form.firstName} onChange={(value) => setForm({ ...form, firstName: value })} />}
+            {mode === "register" && <Field label="Last name" value={form.lastName} onChange={(value) => setForm({ ...form, lastName: value })} />}
             {mode === "register" && <Field label="Phone" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />}
             <Field label="Email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
             {!isResetMode && <Field label="Password" type="password" value={form.password} onChange={(value) => setForm({ ...form, password: value })} />}

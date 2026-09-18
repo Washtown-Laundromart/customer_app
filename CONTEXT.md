@@ -56,3 +56,5 @@ Next tasks:
 - Add real upload endpoint for clothing photos.
 - Configure Paystack webhook in production for server-to-server payment confirmation in addition to the customer return verification fallback.
 - Add an address field during onboarding/registration if pickup address should be captured before the profile page.
+- Courier dispatch failures show the actual provider error: order creation and pickup retry toasts surface the backend `dispatchError` (e.g. Shipbubble name rejection) via `extractDispatchError` in `lib/api.ts`, with a friendly translation in `friendlyErrorMessage` for the Shipbubble full-name rule.
+- Registration and profile use separate First name / Last name fields (joined into `fullName` for the API). Both forms require two words and reject numbers/symbols because courier companies reject one-word contact names. Existing single-word names are split into first/last on the profile page for editing; saving requires both fields.

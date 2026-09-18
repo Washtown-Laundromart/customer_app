@@ -76,6 +76,8 @@ export type Order = {
   bill?: Bill | null;
   deliveries?: DeliveryJob[];
   createdAt?: string;
+  dispatchError?: string;
+  dispatchFailedJobId?: string;
 };
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
@@ -110,6 +112,20 @@ export function toErrorMessage(error: unknown) {
   return "Something went wrong. Please try again.";
 }
 
+// Pulls the raw courier/provider error (e.g. Shipbubble's "Please provide a full name...")
+// out of backend error responses that include a `dispatchError` field.
+export function extractDispatchError(error: unknown) {
+  if (error instanceof Error) {
+    try {
+      const parsed = JSON.parse(error.message) as { dispatchError?: string };
+      if (parsed.dispatchError) return parsed.dispatchError;
+    } catch {
+      // body was not JSON — nothing to extract
+    }
+  }
+  return undefined;
+}
+
 export function friendlyErrorMessage(message?: string) {
   const normalized = message?.toLowerCase() ?? "";
   if (normalized.includes("invalid credentials")) return "The email or password is not correct. Please check it and try again.";
@@ -124,6 +140,9 @@ export function friendlyErrorMessage(message?: string) {
   if (normalized.includes("no live branches")) return "We could not find any open Washtownnig branches yet. Please try again later.";
   if (normalized.includes("no_same_day_courier_available")) {
     return "Same-day courier pickup is not available for this route right now. Please try again shortly or contact the branch for help.";
+  }
+  if (normalized.includes("full name") || normalized.includes("remove all numbers")) {
+    return "The courier rejected the contact name on this order. Your profile needs both a first and last name (e.g. John Doe). Update it on the Profile page, then retry.";
   }
   if (normalized.includes("missing bearer") || normalized.includes("invalid or expired")) return "Your session has expired. Please log in again.";
   return message && message.length < 140 ? message : "Something went wrong. Please try again.";

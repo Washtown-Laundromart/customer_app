@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/toast-provider";
-import { apiFetch, toErrorMessage, type Order, type RequestedItem } from "@/lib/api";
+import { apiFetch, extractDispatchError, toErrorMessage, type Order, type RequestedItem } from "@/lib/api";
 import { useCustomerStore } from "@/lib/store";
 
 export default function OrdersPage() {
@@ -94,7 +94,14 @@ export default function OrdersPage() {
       setOrders(orders.map((item) => item.id === result.order.id ? result.order : item));
       showToast({ type: "success", title: "Pickup dispatch retried", message: `${result.order.code} has been updated.` });
     } catch (error) {
-      showToast({ type: "error", title: "Dispatch still failed", message: toErrorMessage(error) });
+      const dispatchError = extractDispatchError(error);
+      showToast({
+        type: "error",
+        title: "Dispatch still failed",
+        message: dispatchError
+          ? `The courier said: "${dispatchError}" — you can try again after fixing this.`
+          : toErrorMessage(error)
+      });
     } finally {
       setRetryingDeliveryId(undefined);
     }

@@ -152,13 +152,21 @@ export default function RequestWashPage() {
       }, token);
       setOrder(created);
       const pickupDelivery = created.deliveries?.find((delivery) => delivery.leg === "PICKUP_TO_BRANCH" && delivery.fee > 0);
-      showToast({
-        type: "success",
-        title: "Wash request sent",
-        message: created.status === "PICKUP_COURIER_ASSIGNED"
-          ? `Your order ${created.code} has been sent. Pickup delivery fee: ${pickupDelivery ? formatNaira(pickupDelivery.fee) : "pending"}.`
-          : `Your order ${created.code} has been sent to the branch for pickup review.`
-      });
+      if (created.dispatchError) {
+        showToast({
+          type: "error",
+          title: `Wash request sent, but courier dispatch failed for ${created.code}`,
+          message: `The courier said: "${created.dispatchError}" — you can retry the pickup from your orders page.`
+        });
+      } else {
+        showToast({
+          type: "success",
+          title: "Wash request sent",
+          message: created.status === "PICKUP_COURIER_ASSIGNED"
+            ? `Your order ${created.code} has been sent. Pickup delivery fee: ${pickupDelivery ? formatNaira(pickupDelivery.fee) : "pending"}.`
+            : `Your order ${created.code} has been sent to the branch for pickup review.`
+        });
+      }
       window.location.href = "/orders";
     } catch (error) {
       showToast({
